@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"google.golang.org/grpc/reflection"
 	"net"
 	"runtime/debug"
 	"sync"
@@ -285,6 +286,7 @@ func NewRpcService(ctx context.Context, wg *sync.WaitGroup, cancel context.Cance
 		reply, err := handler(ctx, req)
 		return reply, err
 	}))
+	reflection.Register(s)
 	return &RpcService{
 		CommonRPCServer: NewCommonRPCServer(),
 		ctx:             ctx,
