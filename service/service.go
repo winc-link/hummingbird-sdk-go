@@ -410,9 +410,12 @@ func (d *DriverService) connectIotPlatform(deviceId string) error {
 			return errors.New(resp.BaseResponse.ErrorMessage)
 		}
 		if resp.Data.Status == driverdevice.ConnectStatus_ONLINE {
+			device, ok := d.deviceCache.SearchById(deviceId)
+			if ok {
+				device.Status = commons.DeviceOnline
+				d.deviceCache.Update(device)
+			}
 			return nil
-		} else if resp.Data.Status == driverdevice.ConnectStatus_OFFLINE {
-
 		}
 	}
 	return errors.New("unKnow error")
@@ -440,6 +443,11 @@ func (d *DriverService) disconnectIotPlatform(deviceId string) error {
 		if resp.Data.Status == driverdevice.ConnectStatus_ONLINE {
 
 		} else if resp.Data.Status == driverdevice.ConnectStatus_OFFLINE {
+			device, ok := d.deviceCache.SearchById(deviceId)
+			if ok {
+				device.Status = commons.DeviceOffline
+				d.deviceCache.Update(device)
+			}
 			return nil
 		}
 	}
