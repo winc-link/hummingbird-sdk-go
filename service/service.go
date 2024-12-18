@@ -538,6 +538,7 @@ func (d *DriverService) createDevice(addDevice model.AddDevice) (device model.De
 			deviceInfo.External = resp.Data.Devices.External
 			deviceInfo.Status = commons.TransformRpcDeviceStatusToModel(resp.Data.Devices.Status)
 			deviceInfo.Platform = commons.TransformRpcPlatformToModel(resp.Data.Devices.Platform)
+			deviceInfo.External = resp.Data.Devices.External
 			d.deviceCache.Add(deviceInfo)
 			return deviceInfo, nil
 		} else {
