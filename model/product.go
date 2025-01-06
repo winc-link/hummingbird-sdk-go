@@ -30,7 +30,7 @@ type (
 		DataFormat   string
 		Platform     commons.IotPlatform
 		NetType      commons.ProductNetType
-		ProtocolType string
+		ProtocolType commons.ProductProtocolType
 		Properties   []Property //属性
 		Events       []Event    //事件
 		Services     []Service  //服务
@@ -70,6 +70,7 @@ type (
 		Required    bool
 		AccessMode  string
 		TypeSpec    TypeSpec
+		External    map[string]string
 	}
 
 	OutputData struct {
@@ -94,7 +95,7 @@ func TransformProductModel(p *driverproduct.Product) Product {
 		NodeType:     commons.TransformRpcNodeTypeToModel(p.NodeType),
 		Platform:     commons.TransformRpcPlatformToModel(p.Platform),
 		NetType:      commons.TransformRpcNetTypeToModel(p.NetType),
-		ProtocolType: p.GetProtocolType(),
+		ProtocolType: commons.TransformRpcProtocolToModel(p.Protocol),
 		Properties:   propertyModels(p.GetProperties()),
 		Events:       eventModels(p.GetEvents()),
 		Services:     serviceModels(p.GetActions()),
@@ -112,6 +113,7 @@ func propertyModels(p []*driverproduct.Properties) []Property {
 			Required:    p[i].GetRequired(),
 			AccessMode:  p[i].GetAccessMode(),
 			TypeSpec:    TransformTypeSpecModel(p[i].GetTypeSpec()),
+			External:    p[i].GetExternal(),
 		})
 	}
 	return rets

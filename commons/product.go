@@ -66,3 +66,43 @@ func TransformRpcNetTypeToModel(netType driverproduct.ProductNetType) ProductNet
 		return NetTypeOther
 	}
 }
+
+type ProductProtocolType string
+
+const (
+	ProtocolTypeTcp       ProductProtocolType = "TCP"
+	ProtocolTypeUdp       ProductProtocolType = "UDP"
+	ProtocolTypeCoap      ProductProtocolType = "Coap"
+	ProtocolTypeHttp      ProductProtocolType = "HTTP"
+	ProtocolTypeWebSocket ProductProtocolType = "WebSocket"
+	ProtocolTypeModbusTCP ProductProtocolType = "ModbusTCP"
+	ProtocolTypeGB28181   ProductProtocolType = "GB28181"
+	ProtocolTypeSiemensS7 ProductProtocolType = "SiemensS7"
+	ProtocolTypeIEC104    ProductProtocolType = "IEC104"
+	ProtocolTypeUnknow    ProductProtocolType = "Unknow"
+)
+
+func TransformRpcProtocolToModel(protocol driverproduct.ProtocolType) ProductProtocolType {
+	switch protocol {
+	case driverproduct.ProtocolType_TCP:
+		return ProtocolTypeTcp
+	case driverproduct.ProtocolType_UDP:
+		return ProtocolTypeUdp
+	case driverproduct.ProtocolType_CoAP:
+		return ProtocolTypeCoap
+	case driverproduct.ProtocolType_HTTP:
+		return ProtocolTypeHttp
+	case driverproduct.ProtocolType_WebSocket:
+		return ProtocolTypeWebSocket
+	case driverproduct.ProtocolType_ModbusTCP:
+		return ProtocolTypeModbusTCP
+	case driverproduct.ProtocolType_GB28181:
+		return ProtocolTypeGB28181
+	case driverproduct.ProtocolType_SiemensS7:
+		return ProtocolTypeSiemensS7
+	case driverproduct.ProtocolType_IEC104:
+		return ProtocolTypeIEC104
+	default:
+		return ProtocolTypeUnknow
+	}
+}

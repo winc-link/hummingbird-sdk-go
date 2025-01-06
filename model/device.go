@@ -21,15 +21,18 @@ import (
 
 type (
 	Device struct {
-		Id          string
-		Name        string
-		ProductId   string
-		DeviceSn    string
-		Description string
-		Status      commons.DeviceStatus
-		Platform    commons.IotPlatform
-		Secret      string
-		External    map[string]string
+		Id              string
+		Name            string
+		ProductId       string
+		DeviceSn        string
+		Description     string
+		Status          commons.DeviceStatus
+		Platform        commons.IotPlatform
+		Secret          string
+		Ip              string
+		Port            string
+		CollectInterval uint32
+		External        map[string]string
 	}
 )
 
@@ -40,6 +43,8 @@ type (
 		DeviceSn    string
 		Description string
 		External    map[string]string
+		Ip          string
+		Port        string
 	}
 )
 
@@ -64,6 +69,9 @@ func TransformDeviceModel(dev *driverdevice.Device) Device {
 	d.Platform = commons.TransformRpcPlatformToModel(dev.GetPlatform())
 	d.Secret = dev.GetSecret()
 	d.External = dev.GetExternal()
+	d.Ip = dev.GetIp()
+	d.Port = dev.GetPort()
+	d.CollectInterval = dev.GetCollectInterval()
 	return d
 }
 
@@ -94,5 +102,14 @@ func UpdateDeviceModelFieldsFromProto(dev *Device, patch *driverdevice.Device) {
 	}
 	if patch.GetExternal() != nil {
 		dev.External = patch.GetExternal()
+	}
+	if patch.GetIp() != "" {
+		dev.Ip = patch.GetIp()
+	}
+	if patch.GetPort() != "" {
+		dev.Port = patch.GetPort()
+	}
+	if patch.GetCollectInterval() != 0 {
+		dev.CollectInterval = patch.GetCollectInterval()
 	}
 }
