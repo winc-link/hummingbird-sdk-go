@@ -62,6 +62,16 @@ func (d *DriverService) CreateDevice(device model.AddDevice) (model.Device, erro
 	return d.createDevice(device)
 }
 
+// UpdateDevice 更新设备
+func (d *DriverService) UpdateDevice(device model.UpdateDevice) (model.Device, error) {
+	return d.updateDevice(device)
+}
+
+// DeleteDevice 删除设备
+func (d *DriverService) DeleteDevice(deviceId string) error {
+	return d.deleteDevice(deviceId)
+}
+
 // GetDeviceList 获取所有的设备
 func (d *DriverService) GetDeviceList() []model.Device {
 	return d.getDeviceList()

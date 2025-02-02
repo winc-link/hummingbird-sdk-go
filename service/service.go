@@ -511,8 +511,23 @@ func (d *DriverService) createDevice(addDevice model.AddDevice) (device model.De
 	reqDevice.Name = addDevice.Name
 	reqDevice.ProductId = addDevice.ProductId
 	reqDevice.DeviceSn = addDevice.DeviceSn
-	reqDevice.Description = addDevice.Description
+	if addDevice.Status == commons.DeviceOnline {
+		reqDevice.Status = driverdevice.DeviceStatus_OnLine
+	} else if addDevice.Status == commons.DeviceOffline {
+		reqDevice.Status = driverdevice.DeviceStatus_OffLine
+	} else {
+		reqDevice.Status = driverdevice.DeviceStatus_UnKnowStatus
+	}
+	reqDevice.Ip = addDevice.Ip
+	reqDevice.Port = addDevice.Port
+	reqDevice.Lat = addDevice.Lat
+	reqDevice.Lon = addDevice.Lon
+	reqDevice.Location = addDevice.Location
+	reqDevice.ParentId = addDevice.ParentId
+	reqDevice.Manufacturer = addDevice.Manufacturer
+	reqDevice.Model = addDevice.Model
 	reqDevice.External = addDevice.External
+	reqDevice.Description = addDevice.Description
 	req := driverdevice.CreateDeviceRequest{
 		BaseRequest: d.baseMessage.BuildBaseRequest(),
 		Device:      reqDevice,
@@ -528,9 +543,17 @@ func (d *DriverService) createDevice(addDevice model.AddDevice) (device model.De
 			deviceInfo.ProductId = resp.Data.Devices.ProductId
 			deviceInfo.DeviceSn = resp.Data.Devices.DeviceSn
 			deviceInfo.Secret = resp.Data.Devices.Secret
-			deviceInfo.External = resp.Data.Devices.External
 			deviceInfo.Status = commons.TransformRpcDeviceStatusToModel(resp.Data.Devices.Status)
+			deviceInfo.Ip = resp.Data.Devices.Ip
+			deviceInfo.Port = resp.Data.Devices.Port
+			deviceInfo.Lat = resp.Data.Devices.Lat
+			deviceInfo.Lon = resp.Data.Devices.Lon
+			deviceInfo.Location = resp.Data.Devices.Location
+			deviceInfo.PrentId = resp.Data.Devices.ParentId
+			deviceInfo.Manufacturer = resp.Data.Devices.Manufacturer
+			deviceInfo.Model = resp.Data.Devices.Model
 			deviceInfo.External = resp.Data.Devices.External
+			deviceInfo.Description = resp.Data.Devices.Description
 			d.deviceCache.Add(deviceInfo)
 			return deviceInfo, nil
 		} else {
@@ -538,6 +561,93 @@ func (d *DriverService) createDevice(addDevice model.AddDevice) (device model.De
 		}
 	}
 	return deviceInfo, errors.New("unKnow error")
+}
+
+func (d *DriverService) updateDevice(updateDevice model.UpdateDevice) (device model.Device, err error) {
+
+	var (
+		resp *driverdevice.UpdateDeviceRequestResponse
+	)
+
+	if updateDevice.ProductId == "" || updateDevice.Name == "" || updateDevice.DeviceSn == "" || updateDevice.Id == "" {
+		err = errors.New("param failed")
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	reqDevice := new(driverdevice.UpdateDevice)
+	reqDevice.Id = updateDevice.Id
+	reqDevice.Name = updateDevice.Name
+	reqDevice.ProductId = updateDevice.ProductId
+	reqDevice.DeviceSn = updateDevice.DeviceSn
+	if updateDevice.Status == commons.DeviceOnline {
+		reqDevice.Status = driverdevice.DeviceStatus_OnLine
+	} else if updateDevice.Status == commons.DeviceOffline {
+		reqDevice.Status = driverdevice.DeviceStatus_OffLine
+	} else {
+		reqDevice.Status = driverdevice.DeviceStatus_UnKnowStatus
+	}
+	reqDevice.Ip = updateDevice.Ip
+	reqDevice.Port = updateDevice.Port
+	reqDevice.Lat = updateDevice.Lat
+	reqDevice.Lon = updateDevice.Lon
+	reqDevice.Location = updateDevice.Location
+	reqDevice.ParentId = updateDevice.ParentId
+	reqDevice.Manufacturer = updateDevice.Manufacturer
+	reqDevice.Model = updateDevice.Model
+	reqDevice.External = updateDevice.External
+	reqDevice.Description = updateDevice.Description
+	req := driverdevice.UpdateDeviceRequest{
+		BaseRequest: d.baseMessage.BuildBaseRequest(),
+		Device:      reqDevice,
+	}
+	if resp, err = d.rpcClient.UpdateDevice(ctx, &req); err != nil {
+		return model.Device{}, errors.New(status.Convert(err).Message())
+	}
+	var deviceInfo model.Device
+	if resp != nil {
+		if resp.GetBaseResponse().GetSuccess() {
+			deviceInfo.Id = resp.Data.Devices.Id
+			deviceInfo.Name = resp.Data.Devices.Name
+			deviceInfo.ProductId = resp.Data.Devices.ProductId
+			deviceInfo.DeviceSn = resp.Data.Devices.DeviceSn
+			deviceInfo.Secret = resp.Data.Devices.Secret
+			deviceInfo.Status = commons.TransformRpcDeviceStatusToModel(resp.Data.Devices.Status)
+			deviceInfo.Ip = resp.Data.Devices.Ip
+			deviceInfo.Port = resp.Data.Devices.Port
+			deviceInfo.Lat = resp.Data.Devices.Lat
+			deviceInfo.Lon = resp.Data.Devices.Lon
+			deviceInfo.Location = resp.Data.Devices.Location
+			deviceInfo.PrentId = resp.Data.Devices.ParentId
+			deviceInfo.Manufacturer = resp.Data.Devices.Manufacturer
+			deviceInfo.Model = resp.Data.Devices.Model
+			deviceInfo.External = resp.Data.Devices.External
+			deviceInfo.Description = resp.Data.Devices.Description
+			d.deviceCache.Update(deviceInfo)
+			return deviceInfo, nil
+		} else {
+			return deviceInfo, errors.New(resp.GetBaseResponse().GetErrorMessage())
+		}
+	}
+
+	return deviceInfo, nil
+}
+
+func (d *DriverService) deleteDevice(deviceId string) (err error) {
+	if deviceId == "" {
+		return errors.New("param failed")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	req := new(driverdevice.DeleteDeviceRequest)
+	req.DeviceId = deviceId
+	req.BaseRequest = d.baseMessage.BuildBaseRequest()
+	_, err = d.rpcClient.DeleteDevice(ctx, req)
+	if err != nil {
+		return errors.New(status.Convert(err).Message())
+	}
+	d.deviceCache.RemoveById(deviceId)
+	return nil
 }
 
 func (d *DriverService) getProductProperties(productId string) (map[string]model.Property, bool) {

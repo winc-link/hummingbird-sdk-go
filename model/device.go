@@ -51,7 +51,26 @@ type (
 		Lat          string
 		Lon          string
 		Location     string
-		PrentId      string
+		ParentId     string
+		Manufacturer string
+		Model        string
+		External     map[string]string
+		Description  string
+		//Domain       string
+	}
+
+	UpdateDevice struct {
+		Id           string
+		Name         string
+		ProductId    string
+		DeviceSn     string
+		Status       commons.DeviceStatus
+		Ip           string
+		Port         string
+		Lat          string
+		Lon          string
+		Location     string
+		ParentId     string
 		Manufacturer string
 		Model        string
 		External     map[string]string
@@ -62,6 +81,27 @@ type (
 func NewAddDevice(name, productId, deviceSn string, status commons.DeviceStatus, ip, port, lat, lon, location, prentId,
 	manufacturer, model string, external map[string]string, description string) AddDevice {
 	return AddDevice{
+		Name:         name,
+		ProductId:    productId,
+		DeviceSn:     deviceSn,
+		Status:       status,
+		Ip:           ip,
+		Port:         port,
+		Lat:          lat,
+		Lon:          lon,
+		Location:     location,
+		PrentId:      prentId,
+		Manufacturer: manufacturer,
+		Model:        model,
+		External:     external,
+		Description:  description,
+	}
+}
+
+func NewUpdateDevice(id, name, productId, deviceSn string, status commons.DeviceStatus, ip, port, lat, lon, location,
+	prentId, manufacturer, model string, external map[string]string, description string) UpdateDevice {
+	return UpdateDevice{
+		Id:           id,
 		Name:         name,
 		ProductId:    productId,
 		DeviceSn:     deviceSn,
