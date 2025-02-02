@@ -72,6 +72,11 @@ func (d *DriverService) GetDeviceById(deviceId string) (model.Device, bool) {
 	return d.getDeviceById(deviceId)
 }
 
+// GetDeviceByDeviceSn 通过设备Sn获取设备详情
+func (d *DriverService) GetDeviceByDeviceSn(deviceSn string) (model.Device, bool) {
+	return d.getDeviceByDeviceSn(deviceSn)
+}
+
 // ProductList 获取当前实例下的所有产品
 func (d *DriverService) ProductList() map[string]model.Product {
 	return d.productCache.All()

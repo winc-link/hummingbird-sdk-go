@@ -485,6 +485,16 @@ func (d *DriverService) getDeviceById(deviceId string) (model.Device, bool) {
 	return device, true
 }
 
+func (d *DriverService) getDeviceByDeviceSn(deviceSn string) (model.Device, bool) {
+	devices := d.deviceCache.All()
+	for _, device := range devices {
+		if device.DeviceSn == deviceSn {
+			return device, true
+		}
+	}
+	return model.Device{}, false
+}
+
 func (d *DriverService) createDevice(addDevice model.AddDevice) (device model.Device, err error) {
 	var (
 		resp *driverdevice.CreateDeviceRequestResponse
