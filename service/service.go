@@ -26,6 +26,9 @@ import (
 	"syscall"
 	"time"
 
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+
 	"github.com/winc-link/hummingbird-sdk-go/commons"
 	"github.com/winc-link/hummingbird-sdk-go/interfaces"
 	"github.com/winc-link/hummingbird-sdk-go/internal/cache"
@@ -40,15 +43,14 @@ import (
 	"github.com/winc-link/edge-driver-proto/cloudinstance"
 	"github.com/winc-link/edge-driver-proto/drivercommon"
 	"github.com/winc-link/edge-driver-proto/driverdevice"
-	driverstorage "github.com/winc-link/edge-driver-proto/driverstorge"
 	"google.golang.org/grpc/status"
 )
 
 type DriverService struct {
-	ctx               context.Context
-	cancel            context.CancelFunc
-	wg                *sync.WaitGroup
-	platform          commons.IotPlatform
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     *sync.WaitGroup
+	//platform          commons.IotPlatform
 	cfg               *config.DriverConfig
 	driverServiceName string
 	logger            logger.Logger
@@ -60,10 +62,11 @@ type DriverService struct {
 	mqttClient        mqtt.Client
 	baseMessage       commons.BaseMessage
 	node              *snowflake.Worker
+	dbClient          *gorm.DB
 	readyChan         chan struct{}
 }
 
-func NewDriverService(serviceName string, iotPlatform commons.IotPlatform) *DriverService {
+func NewDriverService(serviceName string) *DriverService {
 	var (
 		wg         sync.WaitGroup
 		err        error
@@ -71,6 +74,7 @@ func NewDriverService(serviceName string, iotPlatform commons.IotPlatform) *Driv
 		log        logger.Logger
 		coreClient *client.ResourceClient
 		node       *snowflake.Worker
+		db         *gorm.DB
 	)
 
 	flag.StringVar(&config.FilePath, "c", config.DefaultConfigFilePath, "./driver -c configFile")
@@ -88,13 +92,27 @@ func NewDriverService(serviceName string, iotPlatform commons.IotPlatform) *Driv
 
 	// Start rpc client
 	if coreClient, err = client.NewCoreClient(cfg.Clients[config.Core]); err != nil {
-		log.Errorf("new resource client error: %rpcServer", err)
+		log.Errorf("new resource client error: %v rpcServer", err)
 		os.Exit(-1)
 	}
 	// Snowflake node
 	if node, err = snowflake.NewWorker(1); err != nil {
-		log.Errorf("new msg id generator error: %rpcServer", err)
+		log.Errorf("new msg id generator error: %v rpcServer", err)
 		os.Exit(-1)
+	}
+
+	hummingbirdConfig, err := coreClient.GetHummingbirdConfig(context.Background(), nil)
+	if err != nil {
+		log.Errorf("get hummingbird config error: %v", err)
+		os.Exit(-1)
+	}
+	switch hummingbirdConfig.MetaBases.Type {
+	case drivercommon.MetaBasesType_Mysql:
+		dsn := hummingbirdConfig.MetaBases.Source
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err != nil {
+			log.Errorf("open db error: %v rpcServer", err)
+		}
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -107,7 +125,7 @@ func NewDriverService(serviceName string, iotPlatform commons.IotPlatform) *Driv
 		cfg:               cfg,
 		node:              node,
 		driverServiceName: serviceName,
-		platform:          iotPlatform,
+		dbClient:          db,
 	}
 	if err = driverService.buildRpcBaseMessage(); err != nil {
 		log.Error("buildRpcBaseMessage error:", err)
@@ -129,41 +147,7 @@ func NewDriverService(serviceName string, iotPlatform commons.IotPlatform) *Driv
 
 func (d *DriverService) buildRpcBaseMessage() error {
 	var baseMessage commons.BaseMessage
-	if d.platform == "" || d.platform == commons.HummingbirdIot {
-		d.platform = commons.HummingbirdIot
-		baseMessage.UsePlatform = false
-		baseMessage.DriverInstanceId = d.cfg.GetServiceID()
-	} else {
-		//get instance info。
-		timeoutContext, cancelFunc := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancelFunc()
-		var request cloudinstance.QueryCloudInstanceByPlatformRequest
-		request.IotPlatform = d.platform.TransformModelToRpcPlatform()
-		cloudInstanceInfo, err := d.rpcClient.CloudInstanceServiceClient.QueryCloudInstanceByPlatform(timeoutContext, &request)
-		if err != nil {
-			return err
-		}
-		baseMessage.UsePlatform = true
-		baseMessage.DriverInstanceId = d.cfg.GetServiceID()
-		baseMessage.CloudServiceInfo = new(commons.CloudServiceInfo)
-		baseMessage.CloudServiceInfo.CloudInstanceName = cloudInstanceInfo.CloudInstanceName
-		baseMessage.CloudServiceInfo.CloudInstanceId = cloudInstanceInfo.CloudInstanceId
-		baseMessage.CloudServiceInfo.Address = cloudInstanceInfo.Address
-		baseMessage.CloudServiceInfo.Platform = d.platform
-		if cloudInstanceInfo.Status == cloudinstance.CloudInstanceStatus_Stop {
-			baseMessage.CloudServiceInfo.Status = commons.Stop
-		} else if cloudInstanceInfo.Status == cloudinstance.CloudInstanceStatus_Error {
-
-		} else {
-			baseMessage.CloudServiceInfo.Status = commons.Start
-		}
-		if baseMessage.CloudServiceInfo.Status != commons.Start {
-			//return errors.New("cloud service status error")
-			d.logger.Error("云服务状态异常，请确保云服务是启动状态")
-			os.Exit(-1)
-		}
-
-	}
+	baseMessage.DriverInstanceId = d.cfg.GetServiceID()
 	d.baseMessage = baseMessage
 	return nil
 }
@@ -194,7 +178,6 @@ func (d *DriverService) reportDriverInfo() error {
 	defer cancelFunc()
 	var reportPlatformInfoRequest cloudinstance.DriverReportPlatformInfoRequest
 	reportPlatformInfoRequest.DriverInstanceId = d.cfg.GetServiceID()
-	reportPlatformInfoRequest.IotPlatform = d.platform.TransformModelToRpcPlatform()
 	driverReportPlatformResp, err := d.rpcClient.CloudInstanceServiceClient.DriverReportPlatformInfo(timeoutContext, &reportPlatformInfoRequest)
 	if err != nil {
 		os.Exit(-1)
@@ -537,7 +520,6 @@ func (d *DriverService) createDevice(addDevice model.AddDevice) (device model.De
 			deviceInfo.Secret = resp.Data.Devices.Secret
 			deviceInfo.External = resp.Data.Devices.External
 			deviceInfo.Status = commons.TransformRpcDeviceStatusToModel(resp.Data.Devices.Status)
-			deviceInfo.Platform = commons.TransformRpcPlatformToModel(resp.Data.Devices.Platform)
 			deviceInfo.External = resp.Data.Devices.External
 			d.deviceCache.Add(deviceInfo)
 			return deviceInfo, nil
@@ -570,85 +552,4 @@ func (d *DriverService) getProductServices(productId string) (map[string]model.S
 
 func (d *DriverService) getProductServiceByCode(productId, code string) (model.Service, bool) {
 	return d.productCache.GetServiceSpecByCode(productId, code)
-}
-
-func (d *DriverService) getCustomStorage(keys []string) (map[string][]byte, error) {
-	if len(keys) <= 0 {
-		return nil, errors.New("required keys")
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-	var req = driverstorage.GetReq{
-		DriverServiceId: d.cfg.GetServiceID(),
-		Keys:            keys,
-	}
-
-	if resp, err := d.rpcClient.DriverStorageClient.Get(ctx, &req); err != nil {
-		return nil, errors.New(status.Convert(err).Message())
-	} else {
-		kvs := make(map[string][]byte, len(resp.GetKvs()))
-		for _, value := range resp.GetKvs() {
-			kvs[value.GetKey()] = value.GetValue()
-		}
-		return kvs, nil
-	}
-}
-
-func (d *DriverService) putCustomStorage(kvs map[string][]byte) error {
-	if len(kvs) <= 0 {
-		return errors.New("required key value")
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
-	var kv []*driverstorage.KV
-	for k, v := range kvs {
-		kv = append(kv, &driverstorage.KV{
-			Key:   k,
-			Value: v,
-		})
-	}
-	var req = driverstorage.PutReq{
-		DriverServiceId: d.cfg.GetServiceID(),
-		Data:            kv,
-	}
-
-	if _, err := d.rpcClient.DriverStorageClient.Put(ctx, &req); err != nil {
-		return errors.New(status.Convert(err).Message())
-	}
-	return nil
-
-}
-
-func (d *DriverService) deleteCustomStorage(keys []string) error {
-	if len(keys) <= 0 {
-		return errors.New("required keys")
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-	var req = driverstorage.DeleteReq{
-		DriverServiceId: d.cfg.GetServiceID(),
-		Keys:            keys,
-	}
-
-	if _, err := d.rpcClient.DriverStorageClient.Delete(ctx, &req); err != nil {
-		return errors.New(status.Convert(err).Message())
-	}
-	return nil
-}
-
-func (d *DriverService) getAllCustomStorage() (map[string][]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-	if resp, err := d.rpcClient.DriverStorageClient.All(ctx, &driverstorage.AllReq{
-		DriverServiceId: d.cfg.GetServiceID(),
-	}); err != nil {
-		return nil, errors.New(status.Convert(err).Message())
-	} else {
-		kvs := make(map[string][]byte, len(resp.Kvs))
-		for _, v := range resp.GetKvs() {
-			kvs[v.GetKey()] = v.GetValue()
-		}
-		return kvs, nil
-	}
 }

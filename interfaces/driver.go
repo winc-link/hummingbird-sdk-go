@@ -21,8 +21,6 @@ import (
 )
 
 type Driver interface {
-	// CloudPluginNotify 云服务状态更新通知
-	CloudPluginNotify(ctx context.Context, t commons.CloudPluginNotifyType, name string) error
 	// DeviceNotify 设备增删改通知,删除设备时device参数为空
 	DeviceNotify(ctx context.Context, t commons.DeviceNotifyType, deviceId string, device model.Device) error
 	// ProductNotify 产品增删改通知,删除产品时product参数为空

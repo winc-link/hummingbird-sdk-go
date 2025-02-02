@@ -29,10 +29,3 @@ const (
 	ProductUpdateNotify ProductNotifyType = "update"
 	ProductDeleteNotify ProductNotifyType = "delete"
 )
-
-type CloudPluginNotifyType string
-
-const (
-	CloudPluginStartNotify CloudPluginNotifyType = "start"
-	CloudPluginStopNotify  CloudPluginNotifyType = "stop"
-)

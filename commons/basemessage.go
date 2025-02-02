@@ -19,25 +19,10 @@ import (
 )
 
 type BaseMessage struct {
-	UsePlatform      bool
-	CloudServiceInfo *CloudServiceInfo
 	DriverInstanceId string
-}
-
-func (c BaseMessage) UseCloudPlatform() bool {
-	return c.UsePlatform
 }
 
 func (c BaseMessage) BuildBaseRequest() *drivercommon.BaseRequestMessage {
 	baseRpcRequest := new(drivercommon.BaseRequestMessage)
-	baseRpcRequest.UseCloudPlatform = c.UsePlatform
-	baseRpcRequest.DriverInstanceId = c.DriverInstanceId
-	if baseRpcRequest.UseCloudPlatform {
-		baseRpcRequest.CloudInstanceInfo = new(drivercommon.CloudInstanceInfo)
-		baseRpcRequest.CloudInstanceInfo.CloudInstanceName = c.CloudServiceInfo.CloudInstanceName
-		baseRpcRequest.CloudInstanceInfo.CloudInstanceId = c.CloudServiceInfo.CloudInstanceId
-		baseRpcRequest.CloudInstanceInfo.BaseAddress = c.CloudServiceInfo.Address
-		baseRpcRequest.CloudInstanceInfo.IotPlatform = c.CloudServiceInfo.Platform.TransformModelToRpcPlatform()
-	}
 	return baseRpcRequest
 }

@@ -21,40 +21,61 @@ import (
 
 type (
 	Device struct {
-		Id              string
-		Name            string
-		ProductId       string
-		DeviceSn        string
-		Description     string
-		Status          commons.DeviceStatus
-		Platform        commons.IotPlatform
-		Secret          string
-		Ip              string
-		Port            string
-		CollectInterval uint32
-		External        map[string]string
+		Id           string
+		Name         string
+		ProductId    string
+		DeviceSn     string
+		Description  string
+		Status       commons.DeviceStatus
+		Secret       string
+		Ip           string
+		Port         string
+		Lat          string
+		Lon          string
+		Location     string
+		PrentId      string
+		Manufacturer string
+		Model        string
+		External     map[string]string
 	}
 )
 
 type (
 	AddDevice struct {
-		Name        string
-		ProductId   string
-		DeviceSn    string
-		Description string
-		External    map[string]string
-		Ip          string
-		Port        string
+		Name         string
+		ProductId    string
+		DeviceSn     string
+		Status       commons.DeviceStatus
+		Ip           string
+		Port         string
+		Lat          string
+		Lon          string
+		Location     string
+		PrentId      string
+		Manufacturer string
+		Model        string
+		External     map[string]string
+		Description  string
 	}
 )
 
-func NewAddDevice(name, productId, deviceSn, description string, external map[string]string) AddDevice {
+func NewAddDevice(name, productId, deviceSn string, status commons.DeviceStatus, ip, port, lat, lon, location, prentId,
+	manufacturer, model string, external map[string]string, description string) AddDevice {
 	return AddDevice{
-		Name:        name,
-		ProductId:   productId,
-		DeviceSn:    deviceSn,
-		Description: description,
-		External:    external,
+		Name:         name,
+		ProductId:    productId,
+		DeviceSn:     deviceSn,
+		Status:       status,
+		Ip:           ip,
+		Port:         port,
+		Lat:          lat,
+		Lon:          lon,
+		Location:     location,
+		PrentId:      prentId,
+		Manufacturer: manufacturer,
+		Model:        model,
+		External:     external,
+		Description:  description,
 	}
 }
 
@@ -63,15 +84,19 @@ func TransformDeviceModel(dev *driverdevice.Device) Device {
 	d.Id = dev.GetId()
 	d.Name = dev.GetName()
 	d.ProductId = dev.GetProductId()
-	d.Description = dev.GetDescription()
 	d.DeviceSn = dev.GetDeviceSn()
+	d.Description = dev.GetDescription()
 	d.Status = commons.TransformRpcDeviceStatusToModel(dev.GetStatus())
-	d.Platform = commons.TransformRpcPlatformToModel(dev.GetPlatform())
 	d.Secret = dev.GetSecret()
-	d.External = dev.GetExternal()
 	d.Ip = dev.GetIp()
 	d.Port = dev.GetPort()
-	d.CollectInterval = dev.GetCollectInterval()
+	d.Lat = dev.GetLat()
+	d.Lon = dev.GetLon()
+	d.Location = dev.GetLocation()
+	d.PrentId = dev.GetParentId()
+	d.Manufacturer = dev.GetManufacturer()
+	d.Model = dev.GetModel()
+	d.External = dev.GetExternal()
 	return d
 }
 
@@ -82,26 +107,17 @@ func UpdateDeviceModelFieldsFromProto(dev *Device, patch *driverdevice.Device) {
 	if patch.GetProductId() != "" {
 		dev.ProductId = patch.GetProductId()
 	}
-	if patch.GetDescription() != "" {
-		dev.Description = patch.GetDescription()
-	}
-
-	if patch.GetDescription() != "" {
-		dev.Description = patch.GetDescription()
-	}
-
-	if patch.GetStatus().String() != "" {
-		dev.Status = commons.TransformRpcDeviceStatusToModel(patch.GetStatus())
-	}
-	if patch.GetPlatform().String() != "" {
-		dev.Platform = commons.TransformRpcPlatformToModel(patch.GetPlatform())
-	}
-
 	if patch.GetDeviceSn() != "" {
 		dev.DeviceSn = patch.GetDeviceSn()
 	}
-	if patch.GetExternal() != nil {
-		dev.External = patch.GetExternal()
+	if patch.GetDescription() != "" {
+		dev.Description = patch.GetDescription()
+	}
+	if patch.GetStatus().String() != "" {
+		dev.Status = commons.TransformRpcDeviceStatusToModel(patch.GetStatus())
+	}
+	if patch.GetSecret() != "" {
+		dev.Secret = patch.GetSecret()
 	}
 	if patch.GetIp() != "" {
 		dev.Ip = patch.GetIp()
@@ -109,7 +125,25 @@ func UpdateDeviceModelFieldsFromProto(dev *Device, patch *driverdevice.Device) {
 	if patch.GetPort() != "" {
 		dev.Port = patch.GetPort()
 	}
-	if patch.GetCollectInterval() != 0 {
-		dev.CollectInterval = patch.GetCollectInterval()
+	if patch.GetLat() != "" {
+		dev.Lat = patch.GetLat()
+	}
+	if patch.GetLon() != "" {
+		dev.Lon = patch.GetLon()
+	}
+	if patch.GetLocation() != "" {
+		dev.Location = patch.GetLocation()
+	}
+	if patch.GetParentId() != "" {
+		dev.PrentId = patch.GetParentId()
+	}
+	if patch.GetManufacturer() != "" {
+		dev.Manufacturer = patch.GetManufacturer()
+	}
+	if patch.GetModel() != "" {
+		dev.Model = patch.GetModel()
+	}
+	if patch.GetExternal() != nil {
+		dev.External = patch.GetExternal()
 	}
 }

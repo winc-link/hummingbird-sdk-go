@@ -28,7 +28,6 @@ type (
 		Description  string
 		NodeType     commons.ProductNodeType
 		DataFormat   string
-		Platform     commons.IotPlatform
 		NetType      commons.ProductNetType
 		ProtocolType commons.ProductProtocolType
 		Properties   []Property //属性
@@ -93,7 +92,6 @@ func TransformProductModel(p *driverproduct.Product) Product {
 		Key:          p.GetKey(),
 		Description:  p.GetDescription(),
 		NodeType:     commons.TransformRpcNodeTypeToModel(p.NodeType),
-		Platform:     commons.TransformRpcPlatformToModel(p.Platform),
 		NetType:      commons.TransformRpcNetTypeToModel(p.NetType),
 		ProtocolType: commons.TransformRpcProtocolToModel(p.Protocol),
 		Properties:   propertyModels(p.GetProperties()),

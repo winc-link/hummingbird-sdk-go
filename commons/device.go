@@ -26,11 +26,9 @@ const (
 type DeviceStatus string
 
 const (
-	DeviceUnKnow   DeviceStatus = "unknow"
-	DeviceOnline   DeviceStatus = "online"   //在线
-	DeviceOffline  DeviceStatus = "offline"  //离线
-	DeviceUnActive DeviceStatus = "unactive" //未激活
-	DeviceDisable  DeviceStatus = "disable"  //禁用
+	DeviceUnKnow  DeviceStatus = "unknow"
+	DeviceOnline  DeviceStatus = "online"  //在线
+	DeviceOffline DeviceStatus = "offline" //离线
 )
 
 func TransformRpcDeviceStatusToModel(deviceStatus driverdevice.DeviceStatus) DeviceStatus {
@@ -39,10 +37,6 @@ func TransformRpcDeviceStatusToModel(deviceStatus driverdevice.DeviceStatus) Dev
 		return DeviceOnline
 	case driverdevice.DeviceStatus_OffLine:
 		return DeviceOffline
-	case driverdevice.DeviceStatus_UnActive:
-		return DeviceUnActive
-	case driverdevice.DeviceStatus_Disable:
-		return DeviceDisable
 	default:
 		return DeviceUnKnow
 	}

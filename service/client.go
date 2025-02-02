@@ -19,6 +19,7 @@ import (
 	"github.com/winc-link/hummingbird-sdk-go/interfaces"
 	"github.com/winc-link/hummingbird-sdk-go/internal/logger"
 	"github.com/winc-link/hummingbird-sdk-go/model"
+	"gorm.io/gorm"
 )
 
 // Start 启动驱动
@@ -34,6 +35,11 @@ func (d *DriverService) GetLogger() logger.Logger {
 // GetCustomParam 获取自定义参数
 func (d *DriverService) GetCustomParam() string {
 	return d.cfg.CustomParam
+}
+
+// GetDBClient 获取数据库连接
+func (d *DriverService) GetDBClient() *gorm.DB {
+	return d.dbClient
 }
 
 // Online 设备与平台建立连接
@@ -148,24 +154,4 @@ func (d *DriverService) PropertyGetResponse(deviceId string, data model.Property
 // ServiceExecuteResponse 设备动作执行响应
 func (d *DriverService) ServiceExecuteResponse(deviceId string, data model.ServiceExecuteResponse) error {
 	return d.serviceExecuteResponse(deviceId, data)
-}
-
-// GetCustomStorage 根据key值获取驱动存储的自定义内容
-func (d *DriverService) GetCustomStorage(keys []string) (map[string][]byte, error) {
-	return d.getCustomStorage(keys)
-}
-
-// PutCustomStorage 存储驱动的自定义内容
-func (d *DriverService) PutCustomStorage(kvs map[string][]byte) error {
-	return d.putCustomStorage(kvs)
-}
-
-// DeleteCustomStorage 根据key值删除驱动存储的自定义内容
-func (d *DriverService) DeleteCustomStorage(keys []string) error {
-	return d.deleteCustomStorage(keys)
-}
-
-// GetAllCustomStorage 获取所有驱动存储的自定义内容
-func (d *DriverService) GetAllCustomStorage() (map[string][]byte, error) {
-	return d.getAllCustomStorage()
 }

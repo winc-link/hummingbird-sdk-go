@@ -32,7 +32,6 @@ import (
 	"github.com/winc-link/hummingbird-sdk-go/internal/logger"
 	"github.com/winc-link/hummingbird-sdk-go/model"
 
-	"github.com/winc-link/edge-driver-proto/cloudinstance"
 	"github.com/winc-link/edge-driver-proto/cloudinstancecallback"
 	"github.com/winc-link/edge-driver-proto/devicecallback"
 	"github.com/winc-link/edge-driver-proto/drivercommon"
@@ -71,19 +70,19 @@ type RpcService struct {
 	isRunning bool
 }
 
-func (server *RpcService) CloudInstanceStatueCallback(ctx context.Context,
-	request *cloudinstancecallback.CloudInstanceStatueCallbackRequest) (*emptypb.Empty, error) {
-	var notifyType commons.CloudPluginNotifyType
-	if request.GetStatus() == cloudinstance.CloudInstanceStatus_Stop {
-		notifyType = commons.CloudPluginStopNotify
-	} else if request.GetStatus() == cloudinstance.CloudInstanceStatus_Start {
-		notifyType = commons.CloudPluginStartNotify
-	}
-	if err := server.driverProvider.CloudPluginNotify(ctx, notifyType, request.GetCloudInstanceName()); err != nil {
-		return new(emptypb.Empty), status.Errorf(codes.Internal, err.Error())
-	}
-	return new(emptypb.Empty), nil
-}
+//func (server *RpcService) CloudInstanceStatueCallback(ctx context.Context,
+//	request *cloudinstancecallback.CloudInstanceStatueCallbackRequest) (*emptypb.Empty, error) {
+//	var notifyType commons.CloudPluginNotifyType
+//	if request.GetStatus() == cloudinstance.CloudInstanceStatus_Stop {
+//		notifyType = commons.CloudPluginStopNotify
+//	} else if request.GetStatus() == cloudinstance.CloudInstanceStatus_Start {
+//		notifyType = commons.CloudPluginStartNotify
+//	}
+//	if err := server.driverProvider.CloudPluginNotify(ctx, notifyType, request.GetCloudInstanceName()); err != nil {
+//		return new(emptypb.Empty), status.Errorf(codes.Internal, err.Error())
+//	}
+//	return new(emptypb.Empty), nil
+//}
 
 func (server *RpcService) CreateDeviceCallback(ctx context.Context, request *devicecallback.CreateDeviceCallbackRequest) (*emptypb.Empty, error) {
 	server.logger.Info("CreateDeviceCallback:", request.String())
