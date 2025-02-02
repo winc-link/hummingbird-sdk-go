@@ -36,26 +36,28 @@ type (
 		PrentId      string
 		Manufacturer string
 		Model        string
+		Transport    string
 		External     map[string]string
 	}
 )
 
 type (
 	AddDevice struct {
-		Name         string
-		ProductId    string
-		DeviceSn     string
-		Status       commons.DeviceStatus
-		Ip           string
-		Port         string
-		Lat          string
-		Lon          string
-		Location     string
-		ParentId     string
-		Manufacturer string
-		Model        string
-		External     map[string]string
-		Description  string
+		Name         string               //名称
+		ProductId    string               //产品ID
+		DeviceSn     string               //设备唯一标识
+		Status       commons.DeviceStatus //状态
+		Ip           string               // IP
+		Port         string               //端口
+		Lat          string               //纬度
+		Lon          string               //经度
+		Location     string               //位置
+		ParentId     string               //父设备ID
+		Manufacturer string               //工厂
+		Model        string               //版本
+		Description  string               //描述
+		Transport    string               //协议
+		External     map[string]string    //附加信息
 		//Domain       string
 	}
 
@@ -73,13 +75,14 @@ type (
 		ParentId     string
 		Manufacturer string
 		Model        string
-		External     map[string]string
 		Description  string
+		Transport    string
+		External     map[string]string
 	}
 )
 
-func NewAddDevice(name, productId, deviceSn string, status commons.DeviceStatus, ip, port, lat, lon, location, prentId,
-	manufacturer, model string, external map[string]string, description string) AddDevice {
+func NewAddDevice(name, productId, deviceSn string, status commons.DeviceStatus, ip, port, lat, lon, location, parentId,
+	manufacturer, model string, description string, transport string, external map[string]string) AddDevice {
 	return AddDevice{
 		Name:         name,
 		ProductId:    productId,
@@ -90,16 +93,17 @@ func NewAddDevice(name, productId, deviceSn string, status commons.DeviceStatus,
 		Lat:          lat,
 		Lon:          lon,
 		Location:     location,
-		PrentId:      prentId,
+		ParentId:     parentId,
 		Manufacturer: manufacturer,
 		Model:        model,
-		External:     external,
 		Description:  description,
+		Transport:    transport,
+		External:     external,
 	}
 }
 
 func NewUpdateDevice(id, name, productId, deviceSn string, status commons.DeviceStatus, ip, port, lat, lon, location,
-	prentId, manufacturer, model string, external map[string]string, description string) UpdateDevice {
+	parentId, manufacturer, model string, description string, transport string, external map[string]string) UpdateDevice {
 	return UpdateDevice{
 		Id:           id,
 		Name:         name,
@@ -111,11 +115,12 @@ func NewUpdateDevice(id, name, productId, deviceSn string, status commons.Device
 		Lat:          lat,
 		Lon:          lon,
 		Location:     location,
-		PrentId:      prentId,
+		ParentId:     parentId,
 		Manufacturer: manufacturer,
 		Model:        model,
-		External:     external,
 		Description:  description,
+		Transport:    transport,
+		External:     external,
 	}
 }
 
@@ -137,6 +142,7 @@ func TransformDeviceModel(dev *driverdevice.Device) Device {
 	d.Manufacturer = dev.GetManufacturer()
 	d.Model = dev.GetModel()
 	d.External = dev.GetExternal()
+	d.Transport = dev.GetTransport()
 	return d
 }
 
@@ -185,5 +191,8 @@ func UpdateDeviceModelFieldsFromProto(dev *Device, patch *driverdevice.Device) {
 	}
 	if patch.GetExternal() != nil {
 		dev.External = patch.GetExternal()
+	}
+	if patch.GetTransport() != "" {
+		dev.Transport = patch.GetTransport()
 	}
 }

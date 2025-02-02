@@ -526,8 +526,10 @@ func (d *DriverService) createDevice(addDevice model.AddDevice) (device model.De
 	reqDevice.ParentId = addDevice.ParentId
 	reqDevice.Manufacturer = addDevice.Manufacturer
 	reqDevice.Model = addDevice.Model
-	reqDevice.External = addDevice.External
 	reqDevice.Description = addDevice.Description
+	reqDevice.Transport = addDevice.Description
+	reqDevice.External = addDevice.External
+
 	req := driverdevice.CreateDeviceRequest{
 		BaseRequest: d.baseMessage.BuildBaseRequest(),
 		Device:      reqDevice,
@@ -554,6 +556,7 @@ func (d *DriverService) createDevice(addDevice model.AddDevice) (device model.De
 			deviceInfo.Model = resp.Data.Devices.Model
 			deviceInfo.External = resp.Data.Devices.External
 			deviceInfo.Description = resp.Data.Devices.Description
+			deviceInfo.Transport = resp.Data.Devices.Transport
 			d.deviceCache.Add(deviceInfo)
 			return deviceInfo, nil
 		} else {
@@ -595,8 +598,9 @@ func (d *DriverService) updateDevice(updateDevice model.UpdateDevice) (device mo
 	reqDevice.ParentId = updateDevice.ParentId
 	reqDevice.Manufacturer = updateDevice.Manufacturer
 	reqDevice.Model = updateDevice.Model
-	reqDevice.External = updateDevice.External
 	reqDevice.Description = updateDevice.Description
+	reqDevice.Transport = updateDevice.Description
+	reqDevice.External = updateDevice.External
 	req := driverdevice.UpdateDeviceRequest{
 		BaseRequest: d.baseMessage.BuildBaseRequest(),
 		Device:      reqDevice,
@@ -623,6 +627,7 @@ func (d *DriverService) updateDevice(updateDevice model.UpdateDevice) (device mo
 			deviceInfo.Model = resp.Data.Devices.Model
 			deviceInfo.External = resp.Data.Devices.External
 			deviceInfo.Description = resp.Data.Devices.Description
+			deviceInfo.Transport = resp.Data.Devices.Transport
 			d.deviceCache.Update(deviceInfo)
 			return deviceInfo, nil
 		} else {
