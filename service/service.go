@@ -18,8 +18,7 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"fmt"
-
+	"github.com/golang/protobuf/ptypes/empty"
 	"os"
 	"os/signal"
 	"sync"
@@ -80,8 +79,6 @@ func NewDriverService(serviceName string) *DriverService {
 	flag.StringVar(&config.FilePath, "c", config.DefaultConfigFilePath, "./driver -c configFile")
 	flag.Parse()
 	if cfg, err = config.ParseConfig(); err != nil {
-		fmt.Println(err)
-
 		os.Exit(-1)
 	}
 	if err = cfg.ValidateConfig(); err != nil {
@@ -101,7 +98,7 @@ func NewDriverService(serviceName string) *DriverService {
 		os.Exit(-1)
 	}
 
-	hummingbirdConfig, err := coreClient.GetHummingbirdConfig(context.Background(), nil)
+	hummingbirdConfig, err := coreClient.CommonClient.GetHummingbirdConfig(context.Background(), new(empty.Empty))
 	if err != nil {
 		log.Errorf("get hummingbird config error: %v", err)
 		os.Exit(-1)
