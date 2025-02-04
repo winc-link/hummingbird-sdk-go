@@ -33,7 +33,7 @@ type (
 		Lat          string
 		Lon          string
 		Location     string
-		PrentId      string
+		ParentId     string
 		Manufacturer string
 		Model        string
 		Transport    string
@@ -138,7 +138,7 @@ func TransformDeviceModel(dev *driverdevice.Device) Device {
 	d.Lat = dev.GetLat()
 	d.Lon = dev.GetLon()
 	d.Location = dev.GetLocation()
-	d.PrentId = dev.GetParentId()
+	d.ParentId = dev.GetParentId()
 	d.Manufacturer = dev.GetManufacturer()
 	d.Model = dev.GetModel()
 	d.External = dev.GetExternal()
@@ -181,7 +181,7 @@ func UpdateDeviceModelFieldsFromProto(dev *Device, patch *driverdevice.Device) {
 		dev.Location = patch.GetLocation()
 	}
 	if patch.GetParentId() != "" {
-		dev.PrentId = patch.GetParentId()
+		dev.ParentId = patch.GetParentId()
 	}
 	if patch.GetManufacturer() != "" {
 		dev.Manufacturer = patch.GetManufacturer()

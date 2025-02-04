@@ -551,7 +551,7 @@ func (d *DriverService) createDevice(addDevice model.AddDevice) (device model.De
 			deviceInfo.Lat = resp.Data.Devices.Lat
 			deviceInfo.Lon = resp.Data.Devices.Lon
 			deviceInfo.Location = resp.Data.Devices.Location
-			deviceInfo.PrentId = resp.Data.Devices.ParentId
+			deviceInfo.ParentId = resp.Data.Devices.ParentId
 			deviceInfo.Manufacturer = resp.Data.Devices.Manufacturer
 			deviceInfo.Model = resp.Data.Devices.Model
 			deviceInfo.External = resp.Data.Devices.External
@@ -622,7 +622,7 @@ func (d *DriverService) updateDevice(updateDevice model.UpdateDevice) (device mo
 			deviceInfo.Lat = resp.Data.Devices.Lat
 			deviceInfo.Lon = resp.Data.Devices.Lon
 			deviceInfo.Location = resp.Data.Devices.Location
-			deviceInfo.PrentId = resp.Data.Devices.ParentId
+			deviceInfo.ParentId = resp.Data.Devices.ParentId
 			deviceInfo.Manufacturer = resp.Data.Devices.Manufacturer
 			deviceInfo.Model = resp.Data.Devices.Model
 			deviceInfo.External = resp.Data.Devices.External
