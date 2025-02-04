@@ -106,6 +106,7 @@ func NewDriverService(serviceName string) *DriverService {
 	switch hummingbirdConfig.MetaBases.Type {
 	case drivercommon.MetaBasesType_Mysql:
 		dsn := hummingbirdConfig.MetaBases.Source
+		log.Info("mysql dsn: ", dsn)
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Errorf("open db error: %v rpcServer", err)
