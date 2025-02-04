@@ -24,5 +24,6 @@ type BaseMessage struct {
 
 func (c BaseMessage) BuildBaseRequest() *drivercommon.BaseRequestMessage {
 	baseRpcRequest := new(drivercommon.BaseRequestMessage)
+	baseRpcRequest.DriverInstanceId = c.DriverInstanceId
 	return baseRpcRequest
 }
