@@ -5,12 +5,16 @@
 
 #### 方法
 
+## GetDBClient
+
+获取数据库连接
+```go
+func (d *DriverService) GetDBClient() *gorm.DB
+```
+
 ## Online
-**功能说明** <br>
+设备在线
 
-`设备连接物联网平台`
-
-**方法原型** <br>
 ```go
 func (d *DriverService) Online (deviceId string) error
 ```
@@ -18,19 +22,16 @@ func (d *DriverService) Online (deviceId string) error
 ## Offline
 设备离线
 
-- `deviceId` 设备Id标识
-
 ```go
 func (d *DriverService) Offline (deviceId string) error 
 ```
 
 
 ## GetConnectStatus
-**功能说明** <br>
-
-`获取设备连接状态`
-
-**云平台支持** <br>
+获取设备连接状态
+```go
+func (d *DriverService) GetConnectStatus(deviceId string) (commons.DeviceConnectStatus, error)
+```
 
 
 ## CreateDevice
@@ -38,6 +39,20 @@ func (d *DriverService) Offline (deviceId string) error
 
 ```go
 func (d *DriverService) CreateDevice(device model.AddDevice) (model.Device, error) 
+```
+
+## UpdateDevice
+更新设备
+
+```go
+func (d *DriverService) UpdateDevice(device model.UpdateDevice) (model.Device, error) 
+```
+
+## DeleteDevice
+删除设备
+
+```go
+func (d *DriverService) DeleteDevice(deviceId string) error
 ```
 
 
@@ -138,28 +153,4 @@ func (d *DriverService) PropertyGetResponse(deviceId string, data model.Property
 设备动作执行响应
 ```go
 func (d *DriverService) ServiceExecuteResponse(deviceId string, data model.ServiceExecuteResponse) error 
-```
-
-## GetCustomStorage
-根据key值获取驱动存储的自定义内容
-```go
-func (d *DriverService) GetCustomStorage(keys []string) (map[string][]byte, error)
-```
-
-## PutCustomStorage
-存储驱动的自定义内容
-```go
-func (d *DriverService) PutCustomStorage(kvs map[string][]byte) error 
-```
-
-## DeleteCustomStorage
-根据key值删除驱动存储的自定义内容
-```go
-func (d *DriverService) DeleteCustomStorage(keys []string) error 
-```
-
-## GetAllCustomStorage
-获取所有驱动存储的自定义内容
-```go
-func (d *DriverService) GetAllCustomStorage() (map[string][]byte, error) 
 ```
