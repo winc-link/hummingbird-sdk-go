@@ -104,6 +104,13 @@ func NewPropertyData(value interface{}) PropertyData {
 	}
 }
 
+func NewPropertyDataWithTime(value interface{}, t int64) PropertyData {
+	return PropertyData{
+		Value: value,
+		Time:  t,
+	}
+}
+
 func NewPropertyReport(ack bool, data map[string]PropertyData) PropertyReport {
 	var needAck int8
 	if ack {
@@ -113,8 +120,6 @@ func NewPropertyReport(ack bool, data map[string]PropertyData) PropertyReport {
 	return PropertyReport{
 		CommonRequest: CommonRequest{
 			Version: Version,
-			//MsgId: node.GetId().String()
-			//Time:    time.Now().UnixMilli(),
 			Sys: ACK{
 				Ack: needAck,
 			},
