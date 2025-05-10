@@ -199,4 +199,10 @@ func UpdateDeviceModelFieldsFromProto(dev *Device, patch *driverdevice.Device) {
 	if patch.GetTransport() != "" {
 		dev.Transport = patch.GetTransport()
 	}
+	if patch.GetSlaveId() != "" {
+		dev.SlaveId = patch.GetSlaveId()
+	}
+	if patch.GetPeriod() != "" {
+		dev.Period = patch.GetPeriod()
+	}
 }
