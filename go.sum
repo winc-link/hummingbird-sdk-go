@@ -855,8 +855,8 @@ github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.3 h1:RP3t2pwF7cMEbC1dqtB6poj3niw/9gnV4Cjg5oW5gtY=
 github.com/stretchr/testify v1.8.3/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
-github.com/winc-link/edge-driver-proto v0.0.0-20250202082005-d2ba4a4e3ef5 h1:UKPm4nZU12Mpz10/bXoe03FBvnnljXihZzbB2PVghNU=
-github.com/winc-link/edge-driver-proto v0.0.0-20250202082005-d2ba4a4e3ef5/go.mod h1:H6w+UUMgmrTB+A/vJLm+kwtLb1dcA02IV9wj1UtO3Ws=
+github.com/winc-link/edge-driver-proto v0.0.0-20250510025040-9c7ac380cd0d h1:5ARPW2Ju4dxFvSMCaKE8j+w9ZGWDL2MPHX9hfXiAtBU=
+github.com/winc-link/edge-driver-proto v0.0.0-20250510025040-9c7ac380cd0d/go.mod h1:H6w+UUMgmrTB+A/vJLm+kwtLb1dcA02IV9wj1UtO3Ws=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
