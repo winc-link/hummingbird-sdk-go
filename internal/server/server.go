@@ -327,7 +327,7 @@ func (server *RpcService) Start() error {
 	devicecallback.RegisterDeviceCallBackServiceServer(server.s, server)
 	cloudinstancecallback.RegisterCloudInstanceCallBackServiceServer(server.s, server)
 	thingmodel.RegisterThingModelDownServiceServer(server.s, server)
-
+	thingmodel.RegisterMessageRateServiceServer(server.s, server)
 	monitor.StartQPSCollector()
 	server.wg.Add(1)
 	go func() {
