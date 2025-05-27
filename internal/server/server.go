@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/winc-link/hummingbird-sdk-go/monitor"
 	"google.golang.org/grpc/reflection"
 	"net"
 	"runtime/debug"
@@ -49,6 +50,7 @@ type RpcService struct {
 	productcallback.UnimplementedProductCallBackServiceServer
 	devicecallback.UnimplementedDeviceCallBackServiceServer
 	cloudinstancecallback.UnimplementedCloudInstanceCallBackServiceServer
+	thingmodel.UnimplementedMessageRateServiceServer
 
 	*CommonRPCServer
 	ctx    context.Context
@@ -178,6 +180,7 @@ func (server *RpcService) DeleteProductCallback(ctx context.Context, request *pr
 }
 
 func (server *RpcService) ThingModelMsgIssue(ctx context.Context, request *thingmodel.ThingModelIssueMsg) (*emptypb.Empty, error) {
+	monitor.DownQosRequest()
 	deviceId := request.GetDeviceId()
 	device, ok := server.deviceProvider.SearchById(deviceId)
 	if !ok {
@@ -251,6 +254,18 @@ func (server *RpcService) ThingModelMsgIssue(ctx context.Context, request *thing
 	return new(emptypb.Empty), nil
 }
 
+func (server *RpcService) MessageRate(ctx context.Context, request *emptypb.Empty) (*thingmodel.MessageRateResponse, error) {
+	var resp thingmodel.MessageRateResponse
+	for _, record := range monitor.GetQosHistory() {
+		resp.MessageRate = append(resp.MessageRate, &thingmodel.MessageRate{
+			T:       record.T,
+			UpQos:   record.UpQPS,
+			DownQos: record.DownQPS,
+		})
+	}
+	return &resp, nil
+}
+
 func NewRpcService(ctx context.Context, wg *sync.WaitGroup, cancel context.CancelFunc, cfg config.RPCConfig,
 	dc cache.DeviceProvider, pc cache.ProductProvider, driverProvider interfaces.Driver, cli *client.ResourceClient,
 	logger logger.Logger) (*RpcService, error) {
@@ -313,6 +328,7 @@ func (server *RpcService) Start() error {
 	cloudinstancecallback.RegisterCloudInstanceCallBackServiceServer(server.s, server)
 	thingmodel.RegisterThingModelDownServiceServer(server.s, server)
 
+	monitor.StartQPSCollector()
 	server.wg.Add(1)
 	go func() {
 		defer server.wg.Done()

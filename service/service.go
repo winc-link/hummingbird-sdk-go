@@ -19,6 +19,7 @@ import (
 	"errors"
 	"flag"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/winc-link/hummingbird-sdk-go/monitor"
 	"os"
 	"os/signal"
 	"sync"
@@ -277,6 +278,7 @@ func (d *DriverService) serviceExecuteResponse(cid string, data model.ServiceExe
 }
 
 func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (model.CommonResponse, error) {
+	monitor.UpQosRequest()
 	msgId := d.node.GetId().String()
 	data.MsgId = msgId
 	msg, err := commons.TransformToProtoMsg(cid, commons.PropertyReport, data, d.baseMessage)
@@ -295,6 +297,7 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 }
 
 func (d *DriverService) eventReport(cid string, data model.EventReport) (model.CommonResponse, error) {
+	monitor.UpQosRequest()
 	msgId := d.node.GetId().String()
 	data.MsgId = msgId
 	msg, err := commons.TransformToProtoMsg(cid, commons.EventReport, data, d.baseMessage)
