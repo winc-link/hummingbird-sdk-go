@@ -14,8 +14,6 @@
 
 package model
 
-import "time"
-
 type (
 	PropertyData struct {
 		Value interface{} `json:"value"` // 上报的属性值
@@ -25,7 +23,7 @@ type (
 	// PropertyReport 属性上报 属性查询响应
 	PropertyReport struct {
 		CommonRequest `json:",inline"`
-		Data          map[string]PropertyData `json:"data"`
+		Data          map[string]interface{} `json:"data"`
 	}
 
 	// PropertySet 属性下发
@@ -95,38 +93,40 @@ type (
 	PropertyDesiredDeleteValue struct {
 		Version int64 `json:"version"`
 	}
+
+	EventBusData struct {
+		T           int64                  `json:"t"`
+		MsgId       string                 `json:"msgId"`
+		DeviceId    string                 `json:"deviceId"`
+		ProductId   string                 `json:"productId"`
+		MessageType string                 `json:"messageType"`
+		Data        map[string]interface{} `json:"data"`
+	}
 )
 
-func NewPropertyData(value interface{}) PropertyData {
-	return PropertyData{
-		Value: value,
-		Time:  time.Now().UnixMilli(),
-	}
-}
-
-func NewPropertyDataWithTime(value interface{}, t int64) PropertyData {
-	return PropertyData{
-		Value: value,
-		Time:  t,
-	}
-}
-
-func NewPropertyReport(ack bool, data map[string]PropertyData) PropertyReport {
-	var needAck int8
-	if ack {
-		needAck = 1
-	}
-
+func NewPropertyReport(commonRequest CommonRequest, data map[string]interface{}) PropertyReport {
 	return PropertyReport{
-		CommonRequest: CommonRequest{
-			Version: Version,
-			Sys: ACK{
-				Ack: needAck,
-			},
-		},
-		Data: data,
+		CommonRequest: commonRequest,
+		Data:          data,
 	}
 }
+
+//func NewPropertyReport(ack bool, data map[string]interface{}) PropertyReport {
+//	var needAck int8
+//	if ack {
+//		needAck = 1
+//	}
+//	return PropertyReport{
+//		CommonRequest: CommonRequest{
+//			Time:    time.Now().UnixMilli(),
+//			Version: Version,
+//			Sys: ACK{
+//				Ack: needAck,
+//			},
+//		},
+//		Data: data,
+//	}
+//}
 
 func NewPropertyGetResponse(msgId string, data []PropertyGetResponseData) PropertyGetResponse {
 	return PropertyGetResponse{

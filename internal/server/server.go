@@ -64,8 +64,6 @@ type RpcService struct {
 	productProvider cache.ProductProvider
 
 	driverProvider interfaces.Driver
-	//customMqttMessage interfaces.CustomMqttMessage
-	//reportPool     *worker.TMWorkerPool
 
 	logger    logger.Logger
 	cli       *client.ResourceClient

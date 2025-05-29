@@ -1,0 +1,52 @@
+package influxdb
+
+import (
+	"context"
+	"fmt"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+
+	"github.com/winc-link/edge-driver-proto/drivercommon"
+	"github.com/winc-link/hummingbird-sdk-go/internal/datadb"
+	"time"
+)
+
+type Client struct {
+	org, bucket string
+	client      influxdb2.Client
+}
+
+func (c *Client) Insert(ctx context.Context, table string, fields map[string]interface{}, t int64) (err error) {
+	//get non-blocking write client
+	//timestamp := time.Now()
+	var ts time.Time
+	ts = time.UnixMilli(t).UTC()
+	writeAPI := c.client.WriteAPI(c.org, c.bucket)
+	p := influxdb2.NewPoint(table,
+		map[string]string{},
+		fields,
+		ts)
+	// write point asynchronously
+	writeAPI.WritePoint(p)
+	// Flush writes
+	writeAPI.Flush()
+	return nil
+}
+
+func (c *Client) Close() {
+	c.client.Close()
+}
+func InitClientInfluxDB(config *drivercommon.InfluxDB) (datadb.DataBase, error) {
+	client := influxdb2.NewClient(config.Url, config.Token)
+	ok, err := client.Ping(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, fmt.Errorf("influxdb2 ping failed")
+	}
+	return &Client{
+		client: client,
+		org:    config.Org,
+		bucket: config.Bucket,
+	}, nil
+}

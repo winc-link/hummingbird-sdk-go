@@ -37,11 +37,7 @@ func NewEventData(code string, outputParams map[string]interface{}) EventData {
 	}
 }
 
-func NewEventReport(needACK bool, data EventData) EventReport {
-	var ack int8
-	if needACK {
-		ack = 1
-	}
+func NewEventReport(ack bool, data EventData) EventReport {
 	return EventReport{
 		CommonRequest: CommonRequest{
 			Version: Version,

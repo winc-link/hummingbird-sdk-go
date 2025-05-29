@@ -15,19 +15,22 @@
 package model
 
 import (
+	"github.com/google/uuid"
 	"github.com/winc-link/edge-driver-proto/drivercommon"
+	"time"
 )
 
-const Version = "1.0"
+const Version = "2.7"
 
 type ACK struct {
-	Ack int8 `json:"ack"`
+	Ack bool `json:"ack"`
 }
 
 type CommonResponse struct {
 	//RequestId    string
+	MsgId        string
 	ErrorMessage string
-	Code         string
+	Code         int
 	Success      bool
 }
 
@@ -38,10 +41,38 @@ type CommonRequest struct {
 	Sys     ACK    `json:"sys"`
 }
 
+func NewCommonRequest(msgId string, t int64, ack bool) CommonRequest {
+	if t == 0 {
+		t = time.Now().UnixMilli()
+	}
+	if msgId == "" {
+		msgId = uuid.New().String()
+	}
+	return CommonRequest{
+		Version: Version,
+		MsgId:   msgId,
+		Time:    t,
+		Sys: ACK{
+			Ack: ack,
+		},
+	}
+}
+
+func NewDefaultCommonRequest() CommonRequest {
+	return CommonRequest{
+		Version: Version,
+		MsgId:   uuid.New().String(),
+		Time:    time.Now().UnixMilli(),
+		Sys: ACK{
+			Ack: false,
+		},
+	}
+}
+
 func NewCommonResponse(resp *drivercommon.CommonResponse) CommonResponse {
 	return CommonResponse{
 		ErrorMessage: resp.GetErrorMessage(),
-		Code:         resp.GetCode(),
-		Success:      resp.GetSuccess(),
+		//Code:         resp.GetCode(),
+		Success: resp.GetSuccess(),
 	}
 }

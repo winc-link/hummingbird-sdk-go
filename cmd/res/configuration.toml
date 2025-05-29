@@ -1,0 +1,24 @@
+CustomParam = ""
+
+[Logger]
+FileName = "logs/driver.log"
+LogLevel = "INFO"
+
+[Clients]
+[Clients.Core]
+Address = "124.221.189.137:57081"
+UseTLS = false
+CertFilePath = ""
+ClientId = ""
+Username = ""
+Password = ""
+
+[Service]
+ID = "76453630"
+Name = "MQTT协议驱动-76453630"
+Activated = false
+[Service.Server]
+Address = "0.0.0.0:43696"
+UseTLS = false
+CertFile = ""
+KeyFile = ""

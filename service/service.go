@@ -16,9 +16,19 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/winc-link/hummingbird-sdk-go/constants"
+	"github.com/winc-link/hummingbird-sdk-go/internal/datadb/clickhouse"
+	"github.com/winc-link/hummingbird-sdk-go/internal/datadb/tdengine"
+
+	//influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/winc-link/hummingbird-sdk-go/internal/datadb"
+	"github.com/winc-link/hummingbird-sdk-go/internal/datadb/influxdb"
+
 	"github.com/winc-link/hummingbird-sdk-go/monitor"
 	"os"
 	"os/signal"
@@ -36,7 +46,6 @@ import (
 	"github.com/winc-link/hummingbird-sdk-go/internal/config"
 	"github.com/winc-link/hummingbird-sdk-go/internal/logger"
 	"github.com/winc-link/hummingbird-sdk-go/internal/server"
-	"github.com/winc-link/hummingbird-sdk-go/internal/snowflake"
 	"github.com/winc-link/hummingbird-sdk-go/model"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -59,11 +68,16 @@ type DriverService struct {
 	driver            interfaces.Driver
 	rpcClient         *client.ResourceClient
 	rpcServer         *server.RpcService
-	mqttClient        mqtt.Client
+	eventBusClient    eventBus
 	baseMessage       commons.BaseMessage
-	node              *snowflake.Worker
 	dbClient          *gorm.DB
+	dataDbClient      datadb.DataBase
 	readyChan         chan struct{}
+}
+
+type eventBus struct {
+	client mqtt.Client
+	topic  string
 }
 
 func NewDriverService(serviceName string) *DriverService {
@@ -73,7 +87,6 @@ func NewDriverService(serviceName string) *DriverService {
 		cfg        *config.DriverConfig
 		log        logger.Logger
 		coreClient *client.ResourceClient
-		node       *snowflake.Worker
 		db         *gorm.DB
 	)
 
@@ -94,24 +107,67 @@ func NewDriverService(serviceName string) *DriverService {
 		os.Exit(-1)
 	}
 	// Snowflake node
-	if node, err = snowflake.NewWorker(1); err != nil {
-		log.Errorf("new msg id generator error: %v rpcServer", err)
-		os.Exit(-1)
-	}
 
 	hummingbirdConfig, err := coreClient.CommonClient.GetHummingbirdConfig(context.Background(), new(empty.Empty))
 	if err != nil {
 		log.Errorf("get hummingbird config error: %v", err)
 		os.Exit(-1)
 	}
+
 	switch hummingbirdConfig.MetaBases.Type {
 	case drivercommon.MetaBasesType_Mysql:
 		dsn := hummingbirdConfig.MetaBases.Source
-		log.Info("mysql dsn: ", dsn)
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			log.Errorf("open db error: %v rpcServer", err)
 		}
+	}
+	var mqttClient mqtt.Client
+	switch hummingbirdConfig.MessageQueue.Type {
+	case "mqtt":
+		opts := mqtt.NewClientOptions()
+		opts.AddBroker(fmt.Sprintf("%s://%s:%d", hummingbirdConfig.MessageQueue.Protocol,
+			hummingbirdConfig.MessageQueue.Host, hummingbirdConfig.MessageQueue.Port))
+		opts.SetAutoReconnect(true)
+		opts.SetConnectRetry(true)
+		opts.SetConnectRetryInterval(3 * time.Second) // 重连间隔
+		opts.OnConnect = func(c mqtt.Client) {
+			log.Info("mqtt connect success")
+		}
+		opts.OnConnectionLost = func(c mqtt.Client, err error) {
+			log.Error("mqtt connect lost")
+		}
+
+		mqttClient = mqtt.NewClient(opts)
+		if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
+			log.Errorf("mqtt connect error: %v", token.Error())
+			os.Exit(1)
+		}
+	}
+
+	var dataBaseClient datadb.DataBase
+	switch hummingbirdConfig.DataBases.Type {
+	case "influxdb":
+		dataBase, err := influxdb.InitClientInfluxDB(hummingbirdConfig.DataBases.InfluxDB)
+		if err != nil {
+			log.Errorf("influxdb client init error: %v", err)
+			os.Exit(-1)
+		}
+		dataBaseClient = dataBase
+	case "tdengine":
+		dataBase, err := tdengine.InitTDengineClient(hummingbirdConfig.DataBases.Tdengine)
+		if err != nil {
+			log.Errorf("tdengine client init error: %v", err)
+			os.Exit(-1)
+		}
+		dataBaseClient = dataBase
+	case "clickhouse":
+		dataBase, err := clickhouse.InitClientHouseClient(hummingbirdConfig.DataBases.ClickHouse)
+		if err != nil {
+			log.Errorf("clickhouse client init error: %v", err)
+			os.Exit(-1)
+		}
+		dataBaseClient = dataBase
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -122,9 +178,10 @@ func NewDriverService(serviceName string) *DriverService {
 		rpcClient:         coreClient,
 		logger:            log,
 		cfg:               cfg,
-		node:              node,
 		driverServiceName: serviceName,
 		dbClient:          db,
+		dataDbClient:      dataBaseClient,
+		eventBusClient:    eventBus{client: mqttClient, topic: hummingbirdConfig.MessageQueue.PublishTopicPrefix},
 	}
 	if err = driverService.buildRpcBaseMessage(); err != nil {
 		log.Error("buildRpcBaseMessage error:", err)
@@ -140,7 +197,6 @@ func NewDriverService(serviceName string) *DriverService {
 		log.Error("initCache error:", err)
 		os.Exit(-1)
 	}
-
 	return driverService
 }
 
@@ -279,27 +335,39 @@ func (d *DriverService) serviceExecuteResponse(cid string, data model.ServiceExe
 
 func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (model.CommonResponse, error) {
 	monitor.UpQosRequest()
-	msgId := d.node.GetId().String()
-	data.MsgId = msgId
-	msg, err := commons.TransformToProtoMsg(cid, commons.PropertyReport, data, d.baseMessage)
+	productId, ok := d.getProductIdByDeviceId(cid)
+	if !ok {
+		return model.CommonResponse{
+			MsgId:        data.MsgId,
+			ErrorMessage: constants.ErrorCodeMsgMap[constants.ProductNotFound],
+			Code:         constants.ProductNotFound,
+			Success:      false,
+		}, nil
+	}
+
+	err := d.dataDbClient.Insert(context.Background(), constants.DB_PREFIX+cid, data.Data, data.Time)
 	if err != nil {
-		return model.CommonResponse{}, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
-	thingModelResp := new(drivercommon.CommonResponse)
-	if thingModelResp, err = d.rpcClient.ThingModelMsgReport(ctx, msg); err != nil {
-		return model.CommonResponse{}, errors.New(status.Convert(err).Message())
+		return model.CommonResponse{
+			MsgId:        data.MsgId,
+			ErrorMessage: err.Error(),
+			Code:         constants.InsertTimeDbErrCode,
+			Success:      false,
+		}, err
 	}
 
-	return model.NewCommonResponse(thingModelResp), nil
+	d.pushMsgToEventBus(eventBusPropertyPayload(cid, productId, data))
+	return model.CommonResponse{
+		MsgId:        data.MsgId,
+		ErrorMessage: constants.ErrorCodeMsgMap[constants.DefaultSuccessCode],
+		Code:         constants.DefaultSuccessCode,
+		Success:      true,
+	}, nil
 }
 
 func (d *DriverService) eventReport(cid string, data model.EventReport) (model.CommonResponse, error) {
 	monitor.UpQosRequest()
-	msgId := d.node.GetId().String()
-	data.MsgId = msgId
+	//msgId := d.node.GetId().String()
+	//data.MsgId = msgId
 	msg, err := commons.TransformToProtoMsg(cid, commons.EventReport, data, d.baseMessage)
 	if err != nil {
 		return model.CommonResponse{}, err
@@ -317,8 +385,8 @@ func (d *DriverService) eventReport(cid string, data model.EventReport) (model.C
 }
 
 func (d *DriverService) batchReport(cid string, data model.BatchReport) (model.CommonResponse, error) {
-	msgId := d.node.GetId().String()
-	data.MsgId = msgId
+	//msgId := d.node.GetId().String()
+	//data.MsgId = msgId
 	msg, err := commons.TransformToProtoMsg(cid, commons.BatchReport, data, d.baseMessage)
 	if err != nil {
 		return model.CommonResponse{}, err
@@ -336,8 +404,8 @@ func (d *DriverService) batchReport(cid string, data model.BatchReport) (model.C
 }
 
 func (d *DriverService) propertyDesiredGet(deviceId string, data model.PropertyDesiredGet) (model.PropertyDesiredGetResponse, error) {
-	msgId := d.node.GetId().String()
-	data.MsgId = msgId
+	//msgId := d.node.GetId().String()
+	//data.MsgId = msgId
 	msg, err := commons.TransformToProtoMsg(deviceId, commons.PropertyDesiredGet, data, d.baseMessage)
 	if err != nil {
 		return model.PropertyDesiredGetResponse{}, err
@@ -354,8 +422,8 @@ func (d *DriverService) propertyDesiredGet(deviceId string, data model.PropertyD
 }
 
 func (d *DriverService) propertyDesiredDelete(deviceId string, data model.PropertyDesiredDelete) (model.CommonResponse, error) {
-	msgId := d.node.GetId().String()
-	data.MsgId = msgId
+	//msgId := d.node.GetId().String()
+	//data.MsgId = msgId
 	msg, err := commons.TransformToProtoMsg(deviceId, commons.PropertyDesiredDelete, data, d.baseMessage)
 	if err != nil {
 		return model.CommonResponse{}, err
@@ -484,6 +552,14 @@ func (d *DriverService) getDeviceById(deviceId string) (model.Device, bool) {
 		return model.Device{}, false
 	}
 	return device, true
+}
+
+func (d *DriverService) getProductIdByDeviceId(deviceId string) (string, bool) {
+	device, ok := d.deviceCache.SearchById(deviceId)
+	if !ok {
+		return "", false
+	}
+	return device.ProductId, true
 }
 
 func (d *DriverService) getDeviceByDeviceSn(deviceSn string) (model.Device, bool) {
@@ -678,4 +754,23 @@ func (d *DriverService) getProductServices(productId string) (map[string]model.S
 
 func (d *DriverService) getProductServiceByCode(productId, code string) (model.Service, bool) {
 	return d.productCache.GetServiceSpecByCode(productId, code)
+}
+
+func (d *DriverService) pushMsgToEventBus(payload []byte) {
+	if token := d.eventBusClient.client.Publish(d.eventBusClient.topic, 1, false, payload); token.Wait() && token.Error() != nil {
+		d.logger.Errorf("pushMsgToEventBus error: %s", token.Error())
+	}
+	return
+}
+
+func eventBusPropertyPayload(deviceId, productId string, report model.PropertyReport) []byte {
+	var eventData model.EventBusData
+	eventData.T = report.Time
+	eventData.MsgId = report.MsgId
+	eventData.DeviceId = deviceId
+	eventData.ProductId = productId
+	eventData.MessageType = constants.EventBusTypePropertyReport
+	eventData.Data = report.Data
+	b, _ := json.Marshal(eventData)
+	return b
 }

@@ -22,9 +22,11 @@ import (
 )
 
 const (
-	DefaultConfigFilePath = "/etc/driver/res/configuration.toml"
-	Core                  = "Core"
-	MQTTBroker            = "MQTTBroker"
+	DefaultConfigFilePath     = "/etc/driver/res/configuration.toml"
+	TestDefaultConfigFilePath = "cmd/res/configuration.toml"
+
+	Core       = "Core"
+	MQTTBroker = "MQTTBroker"
 )
 
 type (

@@ -36,16 +36,12 @@ type (
 )
 
 func NewBatchReport(needACK bool, data BatchData) BatchReport {
-	var ack int8
-	if needACK {
-		ack = 1
-	}
 	return BatchReport{
 		CommonRequest: CommonRequest{
 			Version: Version,
 			Time:    time.Now().UnixMilli(),
 			Sys: ACK{
-				Ack: ack,
+				Ack: needACK,
 			},
 		},
 		Data: data,

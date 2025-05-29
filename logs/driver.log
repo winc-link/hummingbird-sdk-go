@@ -1,0 +1,66 @@
+2025-05-28T17:34:31.288+0800 [31mERROR[0m service/service.go:123 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-28T17:35:14.336+0800 [31mERROR[0m service/service.go:127 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-28T17:36:23.804+0800 [31mERROR[0m service/service.go:123 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:38:23.513+0800 [31mERROR[0m service/service.go:126 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:41:03.521+0800 [31mERROR[0m service/service.go:126 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:42:24.372+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:43:11.492+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:44:57.493+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:44:57.545+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T13:44:57.545+0800 [31mERROR[0m service/service.go:164 influxdb init error: Get "/124.221.189.137/ping": unsupported protocol scheme ""
+2025-05-29T13:45:48.701+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:45:48.744+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T13:45:48.745+0800 [31mERROR[0m service/service.go:164 influxdb init error: Get "/124.221.189.137/ping": unsupported protocol scheme ""
+2025-05-29T13:46:13.526+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:46:13.566+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T13:46:13.710+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T13:46:13.710+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T13:47:09.219+0800 [34mINFO[0m service/service.go:272 got stop signal, exit...
+2025-05-29T13:47:11.717+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:47:11.748+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T13:47:11.849+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T13:47:11.849+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T13:53:48.332+0800 [34mINFO[0m service/service.go:272 got stop signal, exit...
+2025-05-29T13:53:50.555+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T13:53:50.589+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T13:53:50.777+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T13:53:50.777+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T14:38:12.672+0800 [34mINFO[0m service/service.go:272 got stop signal, exit...
+2025-05-29T14:42:42.336+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T14:42:42.381+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T14:42:42.498+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T14:42:42.498+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T14:43:18.167+0800 [34mINFO[0m service/service.go:272 got stop signal, exit...
+2025-05-29T14:43:47.062+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T14:43:47.101+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T14:43:47.215+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T14:43:47.215+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T14:43:53.236+0800 [34mINFO[0m service/service.go:272 got stop signal, exit...
+2025-05-29T14:44:27.829+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T14:44:27.864+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T14:44:27.983+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T14:44:27.983+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T14:44:34.605+0800 [34mINFO[0m service/service.go:272 got stop signal, exit...
+2025-05-29T14:51:01.618+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T14:51:01.651+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T14:51:01.772+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T14:51:01.772+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T14:52:05.625+0800 [34mINFO[0m service/service.go:272 got stop signal, exit...
+2025-05-29T14:52:07.875+0800 [31mERROR[0m service/service.go:129 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T14:52:07.907+0800 [34mINFO[0m service/service.go:146 mqtt connect success
+2025-05-29T14:52:08.017+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T14:52:08.017+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T14:52:21.420+0800 [34mINFO[0m service/service.go:272 got stop signal, exit...
+2025-05-29T14:53:38.213+0800 [31mERROR[0m service/service.go:122 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T14:53:38.235+0800 [34mINFO[0m service/service.go:139 mqtt connect success
+2025-05-29T14:53:38.355+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T14:53:38.356+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T14:53:51.364+0800 [34mINFO[0m service/service.go:264 got stop signal, exit...
+2025-05-29T14:54:05.282+0800 [31mERROR[0m service/service.go:122 open db error: dial tcp: lookup mysql: no such host rpcServer
+2025-05-29T14:54:05.315+0800 [34mINFO[0m service/service.go:139 mqtt connect success
+2025-05-29T14:54:05.448+0800 [34mINFO[0m server/server.go:342 Server starting ( [::]:43696 )
+2025-05-29T14:54:05.449+0800 [34mINFO[0m server/server.go:343 Server start success.
+2025-05-29T14:54:11.124+0800 [34mINFO[0m service/service.go:264 got stop signal, exit...
+2025-05-29T14:54:11.124+0800 [34mINFO[0m server/server.go:336 Server shutting down
+2025-05-29T14:54:11.125+0800 [34mINFO[0m server/server.go:339 Server shut down
+2025-05-29T14:54:11.125+0800 [34mINFO[0m server/server.go:354 Server stopped
