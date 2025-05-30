@@ -5,7 +5,6 @@ import (
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 
-	"github.com/winc-link/edge-driver-proto/drivercommon"
 	"github.com/winc-link/hummingbird-sdk-go/internal/datadb"
 	"time"
 )
@@ -13,6 +12,13 @@ import (
 type Client struct {
 	org, bucket string
 	client      influxdb2.Client
+}
+
+type DbClient struct {
+	Org    string
+	Bucket string
+	Url    string
+	Token  string
 }
 
 func (c *Client) Insert(ctx context.Context, table string, fields map[string]interface{}, t int64) (err error) {
@@ -35,7 +41,7 @@ func (c *Client) Insert(ctx context.Context, table string, fields map[string]int
 func (c *Client) Close() {
 	c.client.Close()
 }
-func InitClientInfluxDB(config *drivercommon.InfluxDB) (datadb.DataBase, error) {
+func InitClientInfluxDB(config DbClient) (datadb.DataBase, error) {
 	client := influxdb2.NewClient(config.Url, config.Token)
 	ok, err := client.Ping(context.Background())
 	if err != nil {

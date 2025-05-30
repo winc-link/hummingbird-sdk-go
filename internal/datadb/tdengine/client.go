@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/taosdata/driver-go/v3/taosWS"
-	"github.com/winc-link/edge-driver-proto/drivercommon"
 	"github.com/winc-link/hummingbird-sdk-go/internal/datadb"
 	"strings"
 	"time"
@@ -13,6 +12,10 @@ import (
 
 type Client struct {
 	client *sql.DB
+}
+
+type DbClient struct {
+	Dsn string
 }
 
 func (c *Client) Insert(ctx context.Context, table string, data map[string]interface{}, t int64) (err error) {
@@ -43,7 +46,7 @@ func (c *Client) Close() {
 	c.client.Close()
 }
 
-func InitTDengineClient(config *drivercommon.TDengineSource) (datadb.DataBase, error) {
+func InitTDengineClient(config DbClient) (datadb.DataBase, error) {
 	taos, err := sql.Open("taosWS", config.Dsn)
 	if err != nil {
 		return nil, err

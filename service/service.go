@@ -22,14 +22,12 @@ import (
 	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/winc-link/hummingbird-sdk-go/constants"
-	"github.com/winc-link/hummingbird-sdk-go/internal/datadb/clickhouse"
-	"github.com/winc-link/hummingbird-sdk-go/internal/datadb/tdengine"
-
-	//influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/winc-link/hummingbird-sdk-go/internal/datadb"
+	"github.com/winc-link/hummingbird-sdk-go/internal/datadb/clickhouse"
 	"github.com/winc-link/hummingbird-sdk-go/internal/datadb/influxdb"
-
+	"github.com/winc-link/hummingbird-sdk-go/internal/datadb/tdengine"
 	"github.com/winc-link/hummingbird-sdk-go/monitor"
+	"gorm.io/driver/sqlite"
 	"os"
 	"os/signal"
 	"sync"
@@ -73,22 +71,212 @@ type DriverService struct {
 	dbClient          *gorm.DB
 	dataDbClient      datadb.DataBase
 	readyChan         chan struct{}
+
+	//customConfig
+	userDefinedMessageQueueConfig *MessageQueueConnConfig
+	userDefinedMetaBasesConfig    *MetaBasesConnConfig
+	userDefinedDataBasesConfig    *DataBasesConnConfig
 }
 
-type eventBus struct {
-	client mqtt.Client
-	topic  string
+type Options func(srv *DriverService)
+
+func WithCustomMessageQueueConfig(config *MessageQueueConnConfig) Options {
+	return func(srv *DriverService) {
+		srv.userDefinedMessageQueueConfig = config
+	}
 }
 
-func NewDriverService(serviceName string) *DriverService {
+func WithCustomMetaBasesConfig(config *MetaBasesConnConfig) Options {
+	return func(srv *DriverService) {
+		srv.userDefinedMetaBasesConfig = config
+	}
+}
+
+func WithCustomDataBasesConfig(config *DataBasesConnConfig) Options {
+	return func(srv *DriverService) {
+		srv.userDefinedDataBasesConfig = config
+	}
+}
+
+type MessageQueueConnConfig struct {
+	Protocol          string
+	Host              string
+	Port              uint32
+	Type              string
+	MessageQueueTopic string
+}
+
+func initMessageQueue(hummingbirdConfig *drivercommon.ConfigResponse, config *MessageQueueConnConfig) (mqtt.Client, string, error) {
+
 	var (
-		wg         sync.WaitGroup
-		err        error
-		cfg        *config.DriverConfig
-		log        logger.Logger
-		coreClient *client.ResourceClient
-		db         *gorm.DB
+		protocol          string
+		host              string
+		port              uint32
+		messageQueueType  string
+		messageQueueTopic string
+
+		mqttClient mqtt.Client
 	)
+
+	if config == nil {
+		protocol = hummingbirdConfig.MessageQueue.Protocol
+		host = hummingbirdConfig.MessageQueue.Host
+		port = hummingbirdConfig.MessageQueue.Port
+		messageQueueType = hummingbirdConfig.MessageQueue.Type
+		messageQueueTopic = hummingbirdConfig.MessageQueue.PublishTopicPrefix
+	} else {
+		protocol = config.Protocol
+		host = config.Host
+		port = config.Port
+		messageQueueType = config.Type
+		messageQueueTopic = config.MessageQueueTopic
+	}
+
+	switch messageQueueType {
+	case constants.MessageQueueMqtt:
+		opts := mqtt.NewClientOptions()
+		opts.AddBroker(fmt.Sprintf("%s://%s:%d", protocol, host, port))
+		opts.SetAutoReconnect(true)
+		//opts.SetConnectRetry(true)
+		opts.SetConnectRetryInterval(3 * time.Second) // 重连间隔
+		opts.SetConnectTimeout(2 * time.Second)
+		opts.OnConnect = func(c mqtt.Client) {
+			//log.Info("mqtt connect success")
+		}
+		opts.OnConnectionLost = func(c mqtt.Client, err error) {
+			//log.Error("mqtt connect lost")
+		}
+		mqttClient = mqtt.NewClient(opts)
+		if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
+			return mqttClient, messageQueueTopic, token.Error()
+		}
+	}
+	return mqttClient, messageQueueTopic, nil
+
+}
+
+// MetaBasesConnConfig 数据库连接
+// doc：
+// mysql dbs：root:!@#12345678(127.0.0.1:3306)/hummingbird?charset=utf8mb4&parseTime=True&loc=Local
+// sqlite dbs：hummingbird/db-data/core-data/core.db?_timeout=5000
+type MetaBasesConnConfig struct {
+	Type constants.MetadataType
+	Dns  string
+}
+
+func initMetaBasesDB(hummingbirdConfig *drivercommon.ConfigResponse, basesConfig *MetaBasesConnConfig) (*gorm.DB, error) {
+	var (
+		db  *gorm.DB
+		err error
+	)
+	if basesConfig == nil {
+		dsn := hummingbirdConfig.MetaBases.Source
+		switch hummingbirdConfig.MetaBases.Type {
+		case drivercommon.MetaBasesType_Mysql:
+			db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+			if err != nil {
+				return nil, fmt.Errorf("failed to connect to meta bases: %v", err)
+			}
+		case drivercommon.MetaBasesType_Sqlite:
+			db, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+			if err != nil {
+				return nil, fmt.Errorf("failed to connect to meta bases: %v", err)
+			}
+		}
+		return db, nil
+	} else {
+		dsn := basesConfig.Dns
+		switch basesConfig.Type {
+		case constants.MetadataMysql:
+			db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+			if err != nil {
+				return nil, fmt.Errorf("failed to connect to meta bases: %v", err)
+			}
+		case constants.MetadataSqlite:
+			db, err = gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+			if err != nil {
+				return nil, fmt.Errorf("failed to connect to meta bases: %v", err)
+			}
+		}
+		return db, nil
+	}
+}
+
+type DataBasesConnConfig struct {
+	Type       constants.DataBasesType
+	Tdengine   tdengine.DbClient
+	InfluxDB   influxdb.DbClient
+	ClickHouse clickhouse.DbClient
+}
+
+func initDataBasesDB(hummingbirdConfig *drivercommon.ConfigResponse, basesConfig *DataBasesConnConfig) (datadb.DataBase, error) {
+
+	var (
+		dataBasesType constants.DataBasesType
+		td            tdengine.DbClient
+		influxDB      influxdb.DbClient
+		clickHouse    clickhouse.DbClient
+	)
+
+	if basesConfig == nil {
+		switch hummingbirdConfig.DataBases.Type {
+		case string(constants.DataBasesInfluxdb):
+			dataBasesType = constants.DataBasesInfluxdb
+			influxDB.Url = hummingbirdConfig.DataBases.InfluxDB.Url
+			influxDB.Bucket = hummingbirdConfig.DataBases.InfluxDB.Bucket
+			influxDB.Org = hummingbirdConfig.DataBases.InfluxDB.Org
+			influxDB.Token = hummingbirdConfig.DataBases.InfluxDB.Token
+		case string(constants.DataBasesClickhouse):
+			dataBasesType = constants.DataBasesClickhouse
+			clickHouse.Addr = hummingbirdConfig.DataBases.ClickHouse.Addr
+			clickHouse.Database = hummingbirdConfig.DataBases.ClickHouse.Database
+			clickHouse.Username = hummingbirdConfig.DataBases.ClickHouse.Username
+			clickHouse.Password = hummingbirdConfig.DataBases.ClickHouse.Password
+		case string(constants.DataBasesTdengine):
+			dataBasesType = constants.DataBasesTdengine
+			td.Dsn = hummingbirdConfig.DataBases.Tdengine.Dsn
+		}
+
+	} else {
+		dataBasesType = basesConfig.Type
+		td = basesConfig.Tdengine
+		influxDB = basesConfig.InfluxDB
+		clickHouse = basesConfig.ClickHouse
+	}
+
+	switch dataBasesType {
+	case constants.DataBasesInfluxdb:
+		return influxdb.InitClientInfluxDB(influxDB)
+
+	case constants.DataBasesClickhouse:
+		return clickhouse.InitClientHouseClient(clickHouse)
+
+	case constants.DataBasesTdengine:
+		return tdengine.InitTDengineClient(td)
+	default:
+		return nil, fmt.Errorf("initDataBasesDB unsupported data type: %s", dataBasesType)
+	}
+}
+
+func NewDriverService(serviceName string, opts ...Options) *DriverService {
+
+	driverService := &DriverService{}
+	var (
+		wg              sync.WaitGroup
+		err             error
+		cfg             *config.DriverConfig
+		log             logger.Logger
+		coreClient      *client.ResourceClient
+		db              *gorm.DB
+		mqttClient      mqtt.Client
+		mqttClientTopic string
+
+		dataBaseClient datadb.DataBase
+	)
+
+	for _, fn := range opts {
+		fn(driverService)
+	}
 
 	flag.StringVar(&config.FilePath, "c", config.DefaultConfigFilePath, "./driver -c configFile")
 	flag.Parse()
@@ -106,7 +294,6 @@ func NewDriverService(serviceName string) *DriverService {
 		log.Errorf("new resource client error: %v rpcServer", err)
 		os.Exit(-1)
 	}
-	// Snowflake node
 
 	hummingbirdConfig, err := coreClient.CommonClient.GetHummingbirdConfig(context.Background(), new(empty.Empty))
 	if err != nil {
@@ -114,64 +301,24 @@ func NewDriverService(serviceName string) *DriverService {
 		os.Exit(-1)
 	}
 
-	switch hummingbirdConfig.MetaBases.Type {
-	case drivercommon.MetaBasesType_Mysql:
-		dsn := hummingbirdConfig.MetaBases.Source
-		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
-		if err != nil {
-			log.Errorf("open db error: %v rpcServer", err)
-		}
+	db, err = initMetaBasesDB(hummingbirdConfig, driverService.userDefinedMetaBasesConfig)
+	if err != nil {
+		log.Errorf("init meta bases db error: %v", err)
+		os.Exit(-1)
 	}
-	var mqttClient mqtt.Client
-	switch hummingbirdConfig.MessageQueue.Type {
-	case "mqtt":
-		opts := mqtt.NewClientOptions()
-		opts.AddBroker(fmt.Sprintf("%s://%s:%d", hummingbirdConfig.MessageQueue.Protocol,
-			hummingbirdConfig.MessageQueue.Host, hummingbirdConfig.MessageQueue.Port))
-		opts.SetAutoReconnect(true)
-		opts.SetConnectRetry(true)
-		opts.SetConnectRetryInterval(3 * time.Second) // 重连间隔
-		opts.OnConnect = func(c mqtt.Client) {
-			log.Info("mqtt connect success")
-		}
-		opts.OnConnectionLost = func(c mqtt.Client, err error) {
-			log.Error("mqtt connect lost")
-		}
-
-		mqttClient = mqtt.NewClient(opts)
-		if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
-			log.Errorf("mqtt connect error: %v", token.Error())
-			os.Exit(1)
-		}
+	mqttClient, mqttClientTopic, err = initMessageQueue(hummingbirdConfig, driverService.userDefinedMessageQueueConfig)
+	if err != nil {
+		log.Errorf("init message queue error: %v", err)
+		os.Exit(-1)
 	}
-
-	var dataBaseClient datadb.DataBase
-	switch hummingbirdConfig.DataBases.Type {
-	case "influxdb":
-		dataBase, err := influxdb.InitClientInfluxDB(hummingbirdConfig.DataBases.InfluxDB)
-		if err != nil {
-			log.Errorf("influxdb client init error: %v", err)
-			os.Exit(-1)
-		}
-		dataBaseClient = dataBase
-	case "tdengine":
-		dataBase, err := tdengine.InitTDengineClient(hummingbirdConfig.DataBases.Tdengine)
-		if err != nil {
-			log.Errorf("tdengine client init error: %v", err)
-			os.Exit(-1)
-		}
-		dataBaseClient = dataBase
-	case "clickhouse":
-		dataBase, err := clickhouse.InitClientHouseClient(hummingbirdConfig.DataBases.ClickHouse)
-		if err != nil {
-			log.Errorf("clickhouse client init error: %v", err)
-			os.Exit(-1)
-		}
-		dataBaseClient = dataBase
+	dataBaseClient, err = initDataBasesDB(hummingbirdConfig, driverService.userDefinedDataBasesConfig)
+	if err != nil {
+		log.Errorf("init data bases db error: %v", err)
+		os.Exit(-1)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	driverService := &DriverService{
+	driverService = &DriverService{
 		ctx:               ctx,
 		cancel:            cancel,
 		wg:                &wg,
@@ -181,7 +328,7 @@ func NewDriverService(serviceName string) *DriverService {
 		driverServiceName: serviceName,
 		dbClient:          db,
 		dataDbClient:      dataBaseClient,
-		eventBusClient:    eventBus{client: mqttClient, topic: hummingbirdConfig.MessageQueue.PublishTopicPrefix},
+		eventBusClient:    eventBus{client: mqttClient, topic: mqttClientTopic},
 	}
 	if err = driverService.buildRpcBaseMessage(); err != nil {
 		log.Error("buildRpcBaseMessage error:", err)
@@ -200,6 +347,11 @@ func NewDriverService(serviceName string) *DriverService {
 	return driverService
 }
 
+type eventBus struct {
+	client mqtt.Client
+	topic  string
+}
+
 func (d *DriverService) buildRpcBaseMessage() error {
 	var baseMessage commons.BaseMessage
 	baseMessage.DriverInstanceId = d.cfg.GetServiceID()
@@ -210,7 +362,7 @@ func (d *DriverService) buildRpcBaseMessage() error {
 func (d *DriverService) initCache() error {
 	// Sync device
 	if deviceCache, err := cache.InitDeviceCache(d.baseMessage, d.rpcClient, d.logger); err != nil {
-		d.logger.Errorf("sync device error: %rpcServer", err)
+		d.logger.Errorf("sync device error: %v rpcServer", err)
 		os.Exit(-1)
 	} else {
 		d.deviceCache = deviceCache
@@ -218,7 +370,7 @@ func (d *DriverService) initCache() error {
 
 	// Sync product
 	if productCache, err := cache.InitProductCache(d.baseMessage, d.rpcClient, d.logger); err != nil {
-		d.logger.Errorf("sync tsl error: %s rpcServer", err)
+		d.logger.Errorf("sync tsl error: %v rpcServer", err)
 		os.Exit(-1)
 	} else {
 		d.productCache = productCache

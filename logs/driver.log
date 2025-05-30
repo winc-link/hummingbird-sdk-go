@@ -64,3 +64,82 @@
 2025-05-29T14:54:11.124+0800 [34mINFO[0m server/server.go:336 Server shutting down
 2025-05-29T14:54:11.125+0800 [34mINFO[0m server/server.go:339 Server shut down
 2025-05-29T14:54:11.125+0800 [34mINFO[0m server/server.go:354 Server stopped
+2025-05-30T15:13:13.520+0800 [31mERROR[0m service/service.go:305 init meta bases db error: failed to connect to meta bases: dial tcp: lookup mysql: no such host
+2025-05-30T15:18:24.148+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T15:18:24.149+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T15:18:31.215+0800 [34mINFO[0m service/service.go:419 got stop signal, exit...
+2025-05-30T15:18:31.215+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T15:18:31.216+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-30T15:18:31.216+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T15:22:48.966+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T15:22:48.968+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T15:22:59.391+0800 [34mINFO[0m service/service.go:420 got stop signal, exit...
+2025-05-30T15:22:59.392+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T15:22:59.392+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T15:22:59.392+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-30T15:23:38.270+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T15:23:38.271+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T15:24:05.635+0800 [34mINFO[0m service/service.go:420 got stop signal, exit...
+2025-05-30T15:24:05.636+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T15:24:05.636+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T15:24:05.636+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-30T15:24:18.696+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T15:24:18.696+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T15:24:42.210+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T15:24:42.211+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T15:24:53.389+0800 [34mINFO[0m service/service.go:420 got stop signal, exit...
+2025-05-30T15:24:53.389+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T15:24:53.389+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T15:24:53.389+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-30T15:29:27.719+0800 [31mERROR[0m service/service.go:319 init data bases db error: Get "/ping": unsupported protocol scheme ""
+2025-05-30T15:29:39.187+0800 [31mERROR[0m service/service.go:319 init data bases db error: Get "/ping": unsupported protocol scheme ""
+2025-05-30T15:30:09.258+0800 [31mERROR[0m service/service.go:309 init meta bases db error: failed to connect to meta bases: dial tcp: lookup 124.221.189.1371: no such host
+2025-05-30T15:31:37.873+0800 [31mERROR[0m service/service.go:309 init meta bases db error: failed to connect to meta bases: dial tcp 124.221.189.37:3306: connect: operation timed out
+2025-05-30T15:38:13.368+0800 [31mERROR[0m service/service.go:308 init meta bases db error: failed to connect to meta bases: dial tcp 124.221.189.37:3306: connect: operation timed out
+2025-05-30T15:40:04.405+0800 [31mERROR[0m service/service.go:308 init meta bases db error: failed to connect to meta bases: dial tcp 124.221.189.37:3306: connect: operation timed out
+2025-05-30T15:41:39.105+0800 [31mERROR[0m service/service.go:308 init meta bases db error: failed to connect to meta bases: dial tcp 124.221.189.37:3306: connect: operation timed out
+2025-05-30T15:43:42.727+0800 [31mERROR[0m service/service.go:308 init meta bases db error: failed to connect to meta bases: dial tcp 124.221.189.37:3306: i/o timeout
+2025-05-30T15:53:32.538+0800 [31mERROR[0m service/service.go:316 init message queue error: network Error : dial tcp 124.221.189.137:5809: i/o timeout
+2025-05-30T15:53:48.455+0800 [31mERROR[0m service/service.go:316 init message queue error: network Error : dial tcp 124.221.189.137:5809: i/o timeout
+2025-05-30T15:54:10.316+0800 [31mERROR[0m service/service.go:316 init message queue error: network Error : dial tcp 124.221.189.13:58090: i/o timeout
+2025-05-30T15:55:38.155+0800 [31mERROR[0m service/service.go:316 init message queue error: network Error : dial tcp 124.221.189.13:58090: i/o timeout
+2025-05-30T15:57:35.496+0800 [31mERROR[0m service/service.go:311 init message queue error: network Error : dial tcp 124.221.189.13:58090: i/o timeout
+2025-05-30T15:58:06.332+0800 [31mERROR[0m service/service.go:306 init meta bases db error: failed to connect to meta bases: Error 1049 (42000): Unknown database 'hummigbird'
+2025-05-30T16:00:28.875+0800 [31mERROR[0m service/service.go:316 init data bases db error: Get "/ping": unsupported protocol scheme ""
+2025-05-30T16:02:09.785+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T16:02:09.787+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T16:02:21.410+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-05-30T16:02:21.410+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T16:02:21.410+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T16:02:21.410+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-30T16:02:28.265+0800 [31mERROR[0m service/service.go:316 init data bases db error: Get "http://124.221.189.13:8086/ping": dial tcp 124.221.189.13:8086: i/o timeout
+2025-05-30T16:04:08.917+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T16:04:08.918+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T16:04:15.368+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-05-30T16:04:15.368+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T16:04:15.368+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T16:04:15.368+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-30T16:04:17.747+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T16:04:17.748+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T16:05:16.498+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-05-30T16:05:16.498+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T16:05:16.499+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T16:05:16.499+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-30T16:05:20.386+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T16:05:20.387+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T16:06:52.453+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-05-30T16:06:52.454+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T16:06:52.454+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-30T16:06:52.454+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T16:09:01.269+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T16:09:01.270+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T16:09:30.838+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-05-30T16:09:30.838+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T16:09:30.838+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T16:09:30.838+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-30T16:09:33.797+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-30T16:09:33.798+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-30T16:09:45.256+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-05-30T16:09:45.262+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-30T16:09:45.271+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-30T16:09:45.271+0800 [34mINFO[0m server/server.go:352 Server stopped

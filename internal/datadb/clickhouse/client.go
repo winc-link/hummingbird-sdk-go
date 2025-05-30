@@ -2,29 +2,61 @@ package clickhouse
 
 import (
 	"context"
-	//"crypto/tls"
 	"fmt"
-	"github.com/winc-link/edge-driver-proto/drivercommon"
 	"github.com/winc-link/hummingbird-sdk-go/internal/datadb"
+	"strings"
+	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
-	//"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
+
+type DbClient struct {
+	Addr     []string
+	Database string
+	Username string
+	Password string
+}
 
 type ClickHouse struct {
 	conn clickhouse.Conn
 }
 
 func (c *ClickHouse) Insert(ctx context.Context, table string, fields map[string]interface{}, t int64) (err error) {
-	//TODO implement me
-	panic("implement me")
+	if len(fields) == 0 {
+		return fmt.Errorf("fields cannot be empty")
+	}
+
+	// 自动补充 timestamp 字段
+	fields["timestamp"] = time.UnixMilli(t)
+
+	// 提取字段和占位符
+	columns := make([]string, 0, len(fields))
+	placeholders := make([]string, 0, len(fields))
+	values := make([]interface{}, 0, len(fields))
+
+	for k, v := range fields {
+		columns = append(columns, k)
+		placeholders = append(placeholders, "?")
+		values = append(values, v)
+	}
+
+	// 构造 SQL
+	query := fmt.Sprintf(
+		`INSERT INTO %s (%s) VALUES (%s)`,
+		table,
+		strings.Join(columns, ", "),
+		strings.Join(placeholders, ", "),
+	)
+
+	// 执行插入
+	return c.conn.Exec(ctx, query, values...)
 }
 
 func (c *ClickHouse) Close() {
 	return
 }
 
-func InitClientHouseClient(config *drivercommon.ClickHouse) (datadb.DataBase, error) {
+func InitClientHouseClient(config DbClient) (datadb.DataBase, error) {
 
 	var (
 		ctx       = context.Background()
