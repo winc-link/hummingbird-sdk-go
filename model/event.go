@@ -14,8 +14,6 @@
 
 package model
 
-import "time"
-
 type (
 	// EventReport 设备向云端上报事件
 	EventReport struct {
@@ -23,8 +21,7 @@ type (
 		Data          EventData `json:"data"`
 	}
 	EventData struct {
-		EventCode    string                 `json:"eventCode"`
-		EventTime    int64                  `json:"eventTime"`
+		EventCode    string                 `json:"code"`
 		OutputParams map[string]interface{} `json:"outputParams"`
 	}
 )
@@ -33,19 +30,5 @@ func NewEventData(code string, outputParams map[string]interface{}) EventData {
 	return EventData{
 		EventCode:    code,
 		OutputParams: outputParams,
-		EventTime:    time.Now().UnixMilli(),
-	}
-}
-
-func NewEventReport(ack bool, data EventData) EventReport {
-	return EventReport{
-		CommonRequest: CommonRequest{
-			Version: Version,
-			//Time:    time.Now().UnixMilli(),
-			Sys: ACK{
-				Ack: ack,
-			},
-		},
-		Data: data,
 	}
 }
