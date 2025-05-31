@@ -604,7 +604,7 @@ func (d *DriverService) propertyDesiredDelete(deviceId string, data model.Proper
 
 func (d *DriverService) connectIotPlatform(deviceId string) error {
 	productId, ok := d.getProductIdByDeviceId(deviceId)
-	err := d.dbClient.Model("device").Where("id = ?", deviceId).Updates(map[string]interface{}{
+	err := d.dbClient.Table("device").Where("id = ?", deviceId).Updates(map[string]interface{}{
 		"status": constants.DeviceOnline,
 	}).Error
 	if err != nil {
@@ -621,7 +621,7 @@ func (d *DriverService) connectIotPlatform(deviceId string) error {
 
 func (d *DriverService) disconnectIotPlatform(deviceId string) error {
 	productId, ok := d.getProductIdByDeviceId(deviceId)
-	err := d.dbClient.Model("device").Where("id = ?", deviceId).Updates(map[string]interface{}{
+	err := d.dbClient.Table("device").Where("id = ?", deviceId).Updates(map[string]interface{}{
 		"status": constants.DeviceOffline,
 	}).Error
 	if err != nil {
