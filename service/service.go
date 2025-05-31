@@ -530,7 +530,7 @@ func (d *DriverService) eventReport(cid string, data model.EventReport) (model.C
 	eventData := make(map[string]interface{})
 	for k, v := range data.Data {
 		b, _ := json.Marshal(v)
-		eventData[k] = b
+		eventData[k] = string(b)
 	}
 	err := d.dataDbClient.Insert(context.Background(), constants.DB_PREFIX+cid, eventData, data.Time)
 	if err != nil {
