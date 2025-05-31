@@ -38,6 +38,32 @@ func (c *Client) Insert(ctx context.Context, table string, fields map[string]int
 	return nil
 }
 
+func (c *Client) InsertPropertyData(ctx context.Context, tag map[string]string, fields map[string]interface{}, t int64) (err error) {
+	var ts time.Time
+	ts = time.UnixMilli(t).UTC()
+	writeAPI := c.client.WriteAPI(c.org, c.bucket)
+	p := influxdb2.NewPoint("property_data",
+		tag,
+		fields,
+		ts)
+	writeAPI.WritePoint(p)
+	writeAPI.Flush()
+	return nil
+}
+
+func (c *Client) InsertEventData(ctx context.Context, tag map[string]string, fields map[string]interface{}, t int64) (err error) {
+	var ts time.Time
+	ts = time.UnixMilli(t).UTC()
+	writeAPI := c.client.WriteAPI(c.org, c.bucket)
+	p := influxdb2.NewPoint("event_data",
+		tag,
+		fields,
+		ts)
+	writeAPI.WritePoint(p)
+	writeAPI.Flush()
+	return nil
+}
+
 func (c *Client) Close() {
 	c.client.Close()
 }

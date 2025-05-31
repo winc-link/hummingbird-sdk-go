@@ -527,8 +527,12 @@ func (d *DriverService) eventReport(cid string, data model.EventReport) (model.C
 			Success:      false,
 		}, nil
 	}
-
-	err := d.dataDbClient.Insert(context.Background(), constants.DB_PREFIX+cid, data.Data, data.Time)
+	eventData := make(map[string]interface{})
+	for k, v := range data.Data {
+		b, _ := json.Marshal(v)
+		eventData[k] = b
+	}
+	err := d.dataDbClient.Insert(context.Background(), constants.DB_PREFIX+cid, eventData, data.Time)
 	if err != nil {
 		return model.CommonResponse{
 			MsgId:        data.MsgId,
@@ -912,7 +916,9 @@ func eventBusEventPayload(deviceId, productId string, report model.EventReport) 
 	eventData.DeviceId = deviceId
 	eventData.ProductId = productId
 	eventData.MessageType = constants.EventBusTypeEventReport
-	eventData.Data = report.Data
+	for k, v := range report.Data {
+		eventData.Data[k] = v
+	}
 	b, _ := json.Marshal(eventData)
 	return b
 }

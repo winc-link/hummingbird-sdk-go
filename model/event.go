@@ -18,6 +18,6 @@ type (
 	// EventReport 设备向云端上报事件
 	EventReport struct {
 		CommonRequest `json:",inline"`
-		Data          map[string]interface{} `json:"data"`
+		Data          map[string]map[string]interface{} `json:"data"`
 	}
 )

@@ -27,6 +27,11 @@ func (d *DriverService) Start(driver interfaces.Driver) error {
 	return d.start(driver)
 }
 
+// GetDriverInstanceId 获取驱动实例ID
+func (d *DriverService) GetDriverInstanceId() string {
+	return d.cfg.GetServiceID()
+}
+
 // GetLogger 获取日志接口
 func (d *DriverService) GetLogger() logger.Logger {
 	return d.logger

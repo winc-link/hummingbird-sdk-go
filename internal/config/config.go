@@ -60,7 +60,6 @@ type (
 		ID     string
 		Name   string
 		Server RPCConfig
-		GwId   string
 	}
 
 	DriverConfig struct {
