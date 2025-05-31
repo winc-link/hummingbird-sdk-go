@@ -610,7 +610,7 @@ func (d *DriverService) connectIotPlatform(deviceId string) error {
 	if err != nil {
 		return err
 	}
-	d.pushMsgToEventBus(eventBusDeviceStatusPayload(deviceId, productId, true))
+	d.pushMsgToEventBus(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOnlineEventBus))
 	device, ok := d.deviceCache.SearchById(deviceId)
 	if ok {
 		device.Status = commons.DeviceOnline
@@ -627,7 +627,7 @@ func (d *DriverService) disconnectIotPlatform(deviceId string) error {
 	if err != nil {
 		return err
 	}
-	d.pushMsgToEventBus(eventBusDeviceStatusPayload(deviceId, productId, false))
+	d.pushMsgToEventBus(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOfflineEventBus))
 	device, ok := d.deviceCache.SearchById(deviceId)
 	if ok {
 		device.Status = commons.DeviceOffline
@@ -917,13 +917,15 @@ func eventBusEventPayload(deviceId, productId string, report model.EventReport) 
 	return b
 }
 
-func eventBusDeviceStatusPayload(deviceId, productId string, online bool) []byte {
+func eventBusDeviceStatusPayload(deviceId, productId string, status string) []byte {
 	payload := make(map[string]interface{})
 	payload["deviceId"] = deviceId
 	payload["productId"] = productId
 	payload["messageType"] = constants.EventBusTypeDeviceStatus
 	payload["t"] = time.Now().UnixMilli()
-	payload["status"] = online
+	payload["data"] = map[string]interface{}{
+		"status": status,
+	}
 	b, _ := json.Marshal(payload)
 	return b
 }

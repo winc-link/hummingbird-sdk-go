@@ -32,4 +32,7 @@ const (
 const (
 	DeviceOnline  = "在线"
 	DeviceOffline = "离线"
+
+	DeviceOnlineEventBus  = "online"
+	DeviceOfflineEventBus = "offline"
 )
