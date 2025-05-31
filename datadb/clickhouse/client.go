@@ -3,7 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/winc-link/hummingbird-sdk-go/internal/datadb"
+	"github.com/winc-link/hummingbird-sdk-go/datadb"
 	"strings"
 	"time"
 

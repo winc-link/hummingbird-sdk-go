@@ -143,3 +143,4 @@
 2025-05-30T16:09:45.262+0800 [34mINFO[0m server/server.go:334 Server shutting down
 2025-05-30T16:09:45.271+0800 [34mINFO[0m server/server.go:337 Server shut down
 2025-05-30T16:09:45.271+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-31T14:24:12.024+0800 [31mERROR[0m service/service.go:306 init meta bases db error: failed to connect to meta bases: dial tcp: lookup *.221.189.137: no such host

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 
-	"github.com/winc-link/hummingbird-sdk-go/internal/datadb"
+	"github.com/winc-link/hummingbird-sdk-go/datadb"
 	"time"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/winc-link/hummingbird-sdk-go/commons"
 	"github.com/winc-link/hummingbird-sdk-go/constants"
-	"github.com/winc-link/hummingbird-sdk-go/internal/datadb/influxdb"
+	"github.com/winc-link/hummingbird-sdk-go/datadb/influxdb"
 	"github.com/winc-link/hummingbird-sdk-go/model"
 	"github.com/winc-link/hummingbird-sdk-go/service"
 	"time"
