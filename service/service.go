@@ -528,9 +528,7 @@ func (d *DriverService) eventReport(cid string, data model.EventReport) (model.C
 		}, nil
 	}
 
-	insertData := make(map[string]interface{})
-	insertData[data.Data.EventCode] = data.Data.EventCode
-	err := d.dataDbClient.Insert(context.Background(), constants.DB_PREFIX+cid, insertData, data.Time)
+	err := d.dataDbClient.Insert(context.Background(), constants.DB_PREFIX+cid, data.Data, data.Time)
 	if err != nil {
 		return model.CommonResponse{
 			MsgId:        data.MsgId,
@@ -605,70 +603,37 @@ func (d *DriverService) propertyDesiredDelete(deviceId string, data model.Proper
 }
 
 func (d *DriverService) connectIotPlatform(deviceId string) error {
-	var (
-		err  error
-		resp *driverdevice.ConnectIotPlatformResponse
-	)
-	if len(deviceId) == 0 {
-		return errors.New("required device id")
+	productId, ok := d.getProductIdByDeviceId(deviceId)
+	err := d.dbClient.Model("device").Where("id = ?", deviceId).Updates(map[string]interface{}{
+		"status": constants.DeviceOnline,
+	}).Error
+	if err != nil {
+		return err
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-	req := driverdevice.ConnectIotPlatformRequest{
-		BaseRequest: d.baseMessage.BuildBaseRequest(),
-		DeviceId:    deviceId,
+	d.pushMsgToEventBus(eventBusDeviceStatusPayload(deviceId, productId, true))
+	device, ok := d.deviceCache.SearchById(deviceId)
+	if ok {
+		device.Status = commons.DeviceOnline
+		d.deviceCache.Update(device)
 	}
-	if resp, err = d.rpcClient.ConnectIotPlatform(ctx, &req); err != nil {
-		return errors.New(status.Convert(err).Message())
-	}
-	if resp != nil {
-		if !resp.BaseResponse.Success {
-			return errors.New(resp.BaseResponse.ErrorMessage)
-		}
-		if resp.Data.Status == driverdevice.ConnectStatus_ONLINE {
-			device, ok := d.deviceCache.SearchById(deviceId)
-			if ok {
-				device.Status = commons.DeviceOnline
-				d.deviceCache.Update(device)
-			}
-			return nil
-		}
-	}
-	return errors.New("unKnow error")
+	return nil
 }
 
 func (d *DriverService) disconnectIotPlatform(deviceId string) error {
-	var (
-		err  error
-		resp *driverdevice.DisconnectIotPlatformResponse
-	)
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-	req := driverdevice.DisconnectIotPlatformRequest{
-		BaseRequest: d.baseMessage.BuildBaseRequest(),
-		DeviceId:    deviceId,
+	productId, ok := d.getProductIdByDeviceId(deviceId)
+	err := d.dbClient.Model("device").Where("id = ?", deviceId).Updates(map[string]interface{}{
+		"status": constants.DeviceOffline,
+	}).Error
+	if err != nil {
+		return err
 	}
-	if resp, err = d.rpcClient.DisconnectIotPlatform(ctx, &req); err != nil {
-		return errors.New(status.Convert(err).Message())
+	d.pushMsgToEventBus(eventBusDeviceStatusPayload(deviceId, productId, false))
+	device, ok := d.deviceCache.SearchById(deviceId)
+	if ok {
+		device.Status = commons.DeviceOffline
+		d.deviceCache.Update(device)
 	}
-	if resp != nil {
-		if !resp.BaseResponse.Success {
-			return errors.New(resp.BaseResponse.ErrorMessage)
-		}
-		if resp.Data.Status == driverdevice.ConnectStatus_ONLINE {
-
-		} else if resp.Data.Status == driverdevice.ConnectStatus_OFFLINE {
-			device, ok := d.deviceCache.SearchById(deviceId)
-			if ok {
-				device.Status = commons.DeviceOffline
-				d.deviceCache.Update(device)
-			}
-			return nil
-		}
-	}
-	return errors.New("unKnow error")
+	return nil
 }
 
 func (d *DriverService) getConnectStatus(deviceId string) (commons.DeviceConnectStatus, error) {
@@ -947,7 +912,18 @@ func eventBusEventPayload(deviceId, productId string, report model.EventReport) 
 	eventData.DeviceId = deviceId
 	eventData.ProductId = productId
 	eventData.MessageType = constants.EventBusTypeEventReport
-	eventData.Data[report.Data.EventCode] = report.Data.OutputParams
+	eventData.Data = report.Data
 	b, _ := json.Marshal(eventData)
+	return b
+}
+
+func eventBusDeviceStatusPayload(deviceId, productId string, online bool) []byte {
+	payload := make(map[string]interface{})
+	payload["deviceId"] = deviceId
+	payload["productId"] = productId
+	payload["messageType"] = constants.EventBusTypeDeviceStatus
+	payload["t"] = time.Now().UnixMilli()
+	payload["status"] = online
+	b, _ := json.Marshal(payload)
 	return b
 }

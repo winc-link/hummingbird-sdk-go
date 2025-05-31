@@ -28,3 +28,8 @@ const (
 	DataBasesTdengine   DataBasesType = "tdengine"
 	DataBasesClickhouse DataBasesType = "clickhouse"
 )
+
+const (
+	DeviceOnline  = "在线"
+	DeviceOffline = "离线"
+)
