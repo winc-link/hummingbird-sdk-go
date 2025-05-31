@@ -144,3 +144,18 @@
 2025-05-30T16:09:45.271+0800 [34mINFO[0m server/server.go:337 Server shut down
 2025-05-30T16:09:45.271+0800 [34mINFO[0m server/server.go:352 Server stopped
 2025-05-31T14:24:12.024+0800 [31mERROR[0m service/service.go:306 init meta bases db error: failed to connect to meta bases: dial tcp: lookup *.221.189.137: no such host
+2025-05-31T20:35:16.459+0800 [31mERROR[0m service/service.go:306 init meta bases db error: failed to connect to meta bases: dial tcp: lookup *.221.189.137: i/o timeout
+2025-05-31T20:35:36.073+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-31T20:35:36.074+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-31T20:36:03.378+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-05-31T20:36:03.379+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-31T20:36:03.379+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-05-31T20:36:03.379+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-31T20:36:06.990+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-31T20:36:06.991+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-31T20:36:40.722+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-05-31T20:36:40.724+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-05-31T20:36:52.098+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-05-31T20:36:52.098+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-05-31T20:36:52.099+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-05-31T20:36:52.099+0800 [34mINFO[0m server/server.go:337 Server shut down

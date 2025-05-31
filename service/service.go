@@ -916,6 +916,7 @@ func eventBusEventPayload(deviceId, productId string, report model.EventReport) 
 	eventData.DeviceId = deviceId
 	eventData.ProductId = productId
 	eventData.MessageType = constants.EventBusTypeEventReport
+	eventData.Data = make(map[string]interface{})
 	for k, v := range report.Data {
 		eventData.Data[k] = v
 	}
