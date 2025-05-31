@@ -18,17 +18,6 @@ type (
 	// EventReport 设备向云端上报事件
 	EventReport struct {
 		CommonRequest `json:",inline"`
-		Data          EventData `json:"data"`
-	}
-	EventData struct {
-		EventCode    string                 `json:"code"`
-		OutputParams map[string]interface{} `json:"outputParams"`
+		Data          map[string]interface{} `json:"data"`
 	}
 )
-
-func NewEventData(code string, outputParams map[string]interface{}) EventData {
-	return EventData{
-		EventCode:    code,
-		OutputParams: outputParams,
-	}
-}

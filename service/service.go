@@ -518,22 +518,35 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 
 func (d *DriverService) eventReport(cid string, data model.EventReport) (model.CommonResponse, error) {
 	monitor.UpQosRequest()
-	//msgId := d.node.GetId().String()
-	//data.MsgId = msgId
-	msg, err := commons.TransformToProtoMsg(cid, commons.EventReport, data, d.baseMessage)
+	productId, ok := d.getProductIdByDeviceId(cid)
+	if !ok {
+		return model.CommonResponse{
+			MsgId:        data.MsgId,
+			ErrorMessage: constants.ErrorCodeMsgMap[constants.ProductNotFound],
+			Code:         constants.ProductNotFound,
+			Success:      false,
+		}, nil
+	}
+
+	insertData := make(map[string]interface{})
+	insertData[data.Data.EventCode] = data.Data.EventCode
+	err := d.dataDbClient.Insert(context.Background(), constants.DB_PREFIX+cid, insertData, data.Time)
 	if err != nil {
-		return model.CommonResponse{}, err
+		return model.CommonResponse{
+			MsgId:        data.MsgId,
+			ErrorMessage: err.Error(),
+			Code:         constants.InsertTimeDbErrCode,
+			Success:      false,
+		}, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
-	thingModelResp := new(drivercommon.CommonResponse)
-	if thingModelResp, err = d.rpcClient.ThingModelMsgReport(ctx, msg); err != nil {
-		return model.CommonResponse{}, errors.New(status.Convert(err).Message())
-	}
-
-	return model.NewCommonResponse(thingModelResp), nil
+	d.pushMsgToEventBus(eventBusEventPayload(cid, productId, data))
+	return model.CommonResponse{
+		MsgId:        data.MsgId,
+		ErrorMessage: constants.ErrorCodeMsgMap[constants.DefaultSuccessCode],
+		Code:         constants.DefaultSuccessCode,
+		Success:      true,
+	}, nil
 }
 
 func (d *DriverService) batchReport(cid string, data model.BatchReport) (model.CommonResponse, error) {
@@ -923,6 +936,18 @@ func eventBusPropertyPayload(deviceId, productId string, report model.PropertyRe
 	eventData.ProductId = productId
 	eventData.MessageType = constants.EventBusTypePropertyReport
 	eventData.Data = report.Data
+	b, _ := json.Marshal(eventData)
+	return b
+}
+
+func eventBusEventPayload(deviceId, productId string, report model.EventReport) []byte {
+	var eventData model.EventBusData
+	eventData.T = report.Time
+	eventData.MsgId = report.MsgId
+	eventData.DeviceId = deviceId
+	eventData.ProductId = productId
+	eventData.MessageType = constants.EventBusTypeEventReport
+	eventData.Data[report.Data.EventCode] = report.Data.OutputParams
 	b, _ := json.Marshal(eventData)
 	return b
 }

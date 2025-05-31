@@ -3,10 +3,10 @@ package influxdb
 import (
 	"context"
 	"fmt"
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
-
-	"github.com/winc-link/hummingbird-sdk-go/datadb"
 	"time"
+
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/winc-link/hummingbird-sdk-go/datadb"
 )
 
 type Client struct {
