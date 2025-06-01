@@ -27,11 +27,10 @@ type ACK struct {
 }
 
 type CommonResponse struct {
-	//RequestId    string
-	MsgId        string
-	ErrorMessage string
-	Code         int
-	Success      bool
+	MsgId        string `json:"msgId"`
+	ErrorMessage string `json:"errorMessage"`
+	Code         int    `json:"code"`
+	Success      bool   `json:"success"`
 }
 
 type CommonRequest struct {

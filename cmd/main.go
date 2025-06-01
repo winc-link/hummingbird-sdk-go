@@ -18,7 +18,7 @@ func main() {
 	driverService := service.NewDriverService("test",
 		service.WithCustomMessageQueueConfig(&service.MessageQueueConnConfig{
 			Protocol:          "tcp",
-			Host:              "124.221.189.137",
+			Host:              "*.221.189.137",
 			Port:              58090,
 			Type:              "mqtt",
 			MessageQueueTopic: "eventbus/in",
@@ -28,16 +28,16 @@ func main() {
 			InfluxDB: influxdb.DbClient{
 				Org:    "hummingbird",
 				Bucket: "hummingbird",
-				Url:    "http://124.221.189.137:8086",
+				Url:    "http://*.221.189.137:8086",
 				Token:  "6S4LFh_kP0-RHqIYjYlXgvGfXOgMIkqMkinZDePKiXbcmgIQzQcm5mV5GfSQEDVqcKzQ5WIixO7AEmwHQ17JmQ==",
 			},
 		}), service.WithCustomMetaBasesConfig(&service.MetaBasesConnConfig{
 			Type: constants.MetadataMysql,
-			Dns:  "root:!@#12345678.@tcp(124.221.189.137:3306)/hummingbird?charset=utf8mb4&parseTime=True&loc=Local&timeout=2s",
+			Dns:  "root:!@#12345678.@tcp(*.221.189.137:3306)/hummingbird?charset=utf8mb4&parseTime=True&loc=Local&timeout=2s",
 		}))
 
 	go func() {
-		MsgEventReport(driverService)
+		MsgReport(driverService)
 	}()
 	var d driverTest
 	err := driverService.Start(d)
@@ -66,13 +66,14 @@ func MsgEventReport(driverService *service.DriverService) {
 }
 
 func MsgReport(driverService *service.DriverService) {
+	var value int
 	for {
 		time.Sleep(1 * time.Second)
 		resp, _ := driverService.PropertyReport("41759677", model.NewPropertyReport(model.NewDefaultCommonRequest(), map[string]interface{}{
-			"abc": "123",
-			"efg": "456",
+			"RC": value,
 		}))
 		fmt.Println(resp)
+		value++
 	}
 }
 

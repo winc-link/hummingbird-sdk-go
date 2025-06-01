@@ -159,3 +159,51 @@
 2025-05-31T20:36:52.098+0800 [34mINFO[0m server/server.go:334 Server shutting down
 2025-05-31T20:36:52.099+0800 [34mINFO[0m server/server.go:352 Server stopped
 2025-05-31T20:36:52.099+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-06-01T09:37:24.508+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-06-01T09:37:24.510+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-06-01T09:37:29.759+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-06-01T09:37:29.759+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-06-01T09:37:29.760+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-06-01T09:37:29.760+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-06-01T09:38:04.556+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-06-01T09:38:04.557+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-06-01T09:39:11.983+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-06-01T09:39:11.984+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-06-01T09:39:11.984+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-06-01T09:39:11.984+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-06-01T09:39:15.160+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-06-01T09:39:15.161+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-06-01T09:40:08.048+0800 [34mINFO[0m service/service.go:424 got stop signal, exit...
+2025-06-01T09:40:08.049+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-06-01T09:40:08.050+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-06-01T09:40:08.050+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-06-01T09:41:12.252+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-06-01T09:41:12.253+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-06-01T09:41:15.030+0800 [34mINFO[0m service/service.go:425 got stop signal, exit...
+2025-06-01T09:41:15.030+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-06-01T09:41:15.030+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-06-01T09:41:15.030+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-06-01T09:42:55.964+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-06-01T09:42:55.965+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-06-01T09:42:59.552+0800 [34mINFO[0m service/service.go:425 got stop signal, exit...
+2025-06-01T09:42:59.552+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-06-01T09:42:59.553+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-06-01T09:42:59.553+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-06-01T09:43:39.203+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-06-01T09:43:39.203+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-06-01T09:44:16.663+0800 [34mINFO[0m service/service.go:427 got stop signal, exit...
+2025-06-01T09:44:16.664+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-06-01T09:44:16.665+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-06-01T09:44:16.665+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-06-01T09:44:19.749+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-06-01T09:44:19.749+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-06-01T09:45:51.221+0800 [34mINFO[0m service/service.go:427 got stop signal, exit...
+2025-06-01T09:45:51.221+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-06-01T09:45:51.222+0800 [34mINFO[0m server/server.go:337 Server shut down
+2025-06-01T09:45:51.222+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-06-01T09:45:54.504+0800 [34mINFO[0m server/server.go:340 Server starting ( [::]:43696 )
+2025-06-01T09:45:54.504+0800 [34mINFO[0m server/server.go:341 Server start success.
+2025-06-01T09:49:33.117+0800 [34mINFO[0m service/service.go:427 got stop signal, exit...
+2025-06-01T09:49:33.119+0800 [34mINFO[0m server/server.go:334 Server shutting down
+2025-06-01T09:49:33.119+0800 [34mINFO[0m server/server.go:352 Server stopped
+2025-06-01T09:49:33.119+0800 [34mINFO[0m server/server.go:337 Server shut down

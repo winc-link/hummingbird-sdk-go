@@ -14,8 +14,8 @@ Username = ""
 Password = ""
 
 [Service]
-ID = "52895134"
-Name = "MQTT协议驱动-52895134"
+ID = "37471183"
+Name = "MQTT协议驱动-37471183"
 Activated = false
 [Service.Server]
 Address = "0.0.0.0:43696"
