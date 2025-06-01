@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/google/uuid"
 	"github.com/winc-link/hummingbird-sdk-go/constants"
 	"github.com/winc-link/hummingbird-sdk-go/datadb"
 	"github.com/winc-link/hummingbird-sdk-go/datadb/clickhouse"
@@ -487,6 +488,12 @@ func (d *DriverService) serviceExecuteResponse(cid string, data model.ServiceExe
 
 func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (model.CommonResponse, error) {
 	monitor.UpQosRequest()
+	if data.Time == 0 {
+		data.Time = time.Now().UnixMilli()
+	}
+	if data.MsgId == "" {
+		data.MsgId = uuid.New().String()
+	}
 	productId, ok := d.getProductIdByDeviceId(cid)
 	if !ok {
 		return model.CommonResponse{
@@ -518,6 +525,12 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 
 func (d *DriverService) eventReport(cid string, data model.EventReport) (model.CommonResponse, error) {
 	monitor.UpQosRequest()
+	if data.Time == 0 {
+		data.Time = time.Now().UnixMilli()
+	}
+	if data.MsgId == "" {
+		data.MsgId = uuid.New().String()
+	}
 	productId, ok := d.getProductIdByDeviceId(cid)
 	if !ok {
 		return model.CommonResponse{
