@@ -3,7 +3,7 @@ package tdengine
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"github.com/gogf/gf/v2/container/gvar"
 	_ "github.com/taosdata/driver-go/v3/taosWS"
 	"github.com/winc-link/hummingbird-sdk-go/datadb"
 	"strings"
@@ -28,14 +28,7 @@ func (c *Client) Insert(ctx context.Context, table string, data map[string]inter
 
 	for k, v := range data {
 		field = append(field, strings.ToLower(k))
-		switch val := v.(type) {
-		case string:
-			value = append(value, "'"+val+"'")
-		case int, int64, float64, float32:
-			value = append(value, fmt.Sprintf("%v", val))
-		default:
-			value = append(value, "null")
-		}
+		value = append(value, "'"+gvar.New(v).String()+"'")
 	}
 	s := "INSERT INTO ? (?) VALUES (?)"
 	_, err = c.client.ExecContext(ctx, s, table, strings.Join(field, ","), strings.Join(value, ","))
