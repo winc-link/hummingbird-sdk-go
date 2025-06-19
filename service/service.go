@@ -345,6 +345,12 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 		log.Error("initCache error:", err)
 		os.Exit(-1)
 	}
+
+	if err = driverService.syncDeviceInfoToDriver(); err != nil {
+		log.Error("syncDeviceInfoToDriver error:", err)
+		os.Exit(-1)
+	}
+
 	return driverService
 }
 
@@ -394,6 +400,63 @@ func (d *DriverService) reportDriverInfo() error {
 		return errors.New(driverReportPlatformResp.BaseResponse.ErrorMessage)
 	}
 	return nil
+}
+
+func (d *DriverService) syncDeviceInfoToDriver() error {
+	ticker := time.NewTicker(30 * time.Minute)
+	go func() {
+		for range ticker.C {
+			var (
+				err  error
+				resp *driverdevice.QueryDeviceListResponse
+			)
+			c, cancel := context.WithTimeout(context.Background(), time.Second*30)
+			defer cancel()
+
+			if resp, err = d.rpcClient.RpcDeviceClient.QueryDeviceList(c, &driverdevice.QueryDeviceListRequest{
+				BaseRequest: d.baseMessage.BuildBaseRequest(),
+			}); err != nil {
+				return
+			}
+			if !resp.BaseResponse.Success {
+				return
+			}
+			if resp.Data != nil {
+				for _, device := range resp.Data.Devices {
+					d.deviceCache.Update(model.TransformDeviceModel(device))
+				}
+			}
+		}
+	}()
+	return nil
+}
+
+type DeviceStatus struct {
+	LastReportTime time.Time
+}
+
+var (
+	deviceStatusMap = sync.Map{} // map[string]*DeviceStatus，线程安全
+)
+
+// startDeviceStatusChecker 补偿机制：防止因为异常或漏判导致设备状态卡在“离线”状态
+func (d *DriverService) startDeviceStatusChecker() {
+	ticker := time.NewTicker(5 * time.Minute)
+	go func() {
+		for range ticker.C {
+			for deviceID, dev := range d.deviceCache.All() {
+				if dev.Status == commons.DeviceOffline {
+					// 检查最近是否有上报
+					if v, ok := deviceStatusMap.Load(deviceID); ok {
+						status := v.(*DeviceStatus)
+						if time.Since(status.LastReportTime) <= 5*time.Minute {
+							d.Online(deviceID)
+						}
+					}
+				}
+			}
+		}
+	}()
 }
 
 func (d *DriverService) start(driver interfaces.Driver) error {
@@ -488,6 +551,7 @@ func (d *DriverService) serviceExecuteResponse(cid string, data model.ServiceExe
 
 func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (model.CommonResponse, error) {
 	monitor.UpQosRequest()
+	deviceStatusMap.Store(cid, &DeviceStatus{LastReportTime: time.Now()})
 	if data.Time == 0 {
 		data.Time = time.Now().UnixMilli()
 	}
@@ -525,6 +589,7 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 
 func (d *DriverService) eventReport(cid string, data model.EventReport) (model.CommonResponse, error) {
 	monitor.UpQosRequest()
+	deviceStatusMap.Store(cid, &DeviceStatus{LastReportTime: time.Now()})
 	if data.Time == 0 {
 		data.Time = time.Now().UnixMilli()
 	}
@@ -622,7 +687,8 @@ func (d *DriverService) propertyDesiredDelete(deviceId string, data model.Proper
 func (d *DriverService) connectIotPlatform(deviceId string) error {
 	productId, ok := d.getProductIdByDeviceId(deviceId)
 	err := d.dbClient.Table("device").Where("id = ?", deviceId).Updates(map[string]interface{}{
-		"status": constants.DeviceOnline,
+		"status":           constants.DeviceOnline,
+		"last_online_time": time.Now().UnixMilli(),
 	}).Error
 	if err != nil {
 		return err
