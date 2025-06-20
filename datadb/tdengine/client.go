@@ -3,7 +3,7 @@ package tdengine
 import (
 	"context"
 	"database/sql"
-	"github.com/gogf/gf/v2/container/gvar"
+	"fmt"
 	_ "github.com/taosdata/driver-go/v3/taosWS"
 	"github.com/winc-link/hummingbird-sdk-go/datadb"
 	"strings"
@@ -18,21 +18,40 @@ type DbClient struct {
 	Dsn string
 }
 
-func (c *Client) Insert(ctx context.Context, table string, data map[string]interface{}, t int64) (err error) {
-	ts := time.Unix(0, t*int64(time.Millisecond))
-	formattedTime := ts.UTC().Format("2006-01-02 15:04:05.000")
-	var (
-		field = []string{"ts"}
-		value = []string{"'" + formattedTime + "'"}
-	)
+func (c *Client) Insert(ctx context.Context, table string, data map[string]interface{}, t int64) error {
+	ts := time.UnixMilli(t) // 直接使用毫秒时间戳创建 time.Time
 
-	for k, v := range data {
-		field = append(field, strings.ToLower(k))
-		value = append(value, "'"+gvar.New(v).String()+"'")
+	var columns []string
+	var placeholders []string
+	var values []interface{}
+
+	columns = append(columns, "ts")
+	placeholders = append(placeholders, "?")
+	values = append(values, ts) // 这里用 time.Time 类型，不要转成字符串
+
+	for col, val := range data {
+		columns = append(columns, col)
+		placeholders = append(placeholders, "?")
+		values = append(values, val)
 	}
-	s := "INSERT INTO ? (?) VALUES (?)"
-	_, err = c.client.ExecContext(ctx, s, table, strings.Join(field, ","), strings.Join(value, ","))
-	return
+
+	query := fmt.Sprintf("INSERT INTO `%s` (%s) VALUES (%s)",
+		table,
+		strings.Join(wrapWithBackticks(columns), ","),
+		strings.Join(placeholders, ","),
+	)
+	_, err := c.client.ExecContext(ctx, query, values...)
+	if err != nil {
+		return fmt.Errorf("failed to insert data into %s: %v", table, err)
+	}
+	return nil
+}
+
+func wrapWithBackticks(fields []string) []string {
+	for i, f := range fields {
+		fields[i] = fmt.Sprintf("`%s`", f)
+	}
+	return fields
 }
 
 func (c *Client) Close() {
