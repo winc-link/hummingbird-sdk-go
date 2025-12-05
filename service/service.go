@@ -26,7 +26,9 @@ import (
 	"github.com/winc-link/hummingbird-sdk-go/datadb"
 	"github.com/winc-link/hummingbird-sdk-go/datadb/clickhouse"
 	"github.com/winc-link/hummingbird-sdk-go/datadb/influxdb"
+	"github.com/winc-link/hummingbird-sdk-go/datadb/redis"
 	"github.com/winc-link/hummingbird-sdk-go/datadb/tdengine"
+	"github.com/winc-link/hummingbird-sdk-go/internal/executors"
 	"github.com/winc-link/hummingbird-sdk-go/monitor"
 	"gorm.io/driver/sqlite"
 	"os"
@@ -47,7 +49,6 @@ import (
 	"github.com/winc-link/hummingbird-sdk-go/internal/server"
 	"github.com/winc-link/hummingbird-sdk-go/model"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/winc-link/edge-driver-proto/cloudinstance"
 	"github.com/winc-link/edge-driver-proto/drivercommon"
 	"github.com/winc-link/edge-driver-proto/driverdevice"
@@ -67,25 +68,19 @@ type DriverService struct {
 	driver            interfaces.Driver
 	rpcClient         *client.ResourceClient
 	rpcServer         *server.RpcService
-	eventBusClient    eventBus
 	baseMessage       commons.BaseMessage
 	dbClient          *gorm.DB
 	dataDbClient      datadb.DataBase
+	redisClient       *redis.Client
+	timeDataBatcher   *executors.TimeDataBatcher
 	readyChan         chan struct{}
 
-	//customConfig
-	userDefinedMessageQueueConfig *MessageQueueConnConfig
-	userDefinedMetaBasesConfig    *MetaBasesConnConfig
-	userDefinedDataBasesConfig    *DataBasesConnConfig
+	userDefinedMetaBasesConfig *MetaBasesConnConfig
+	userDefinedDataBasesConfig *DataBasesConnConfig
+	userDefinedRedisConfig     *RedisBasesConnConfig
 }
 
 type Options func(srv *DriverService)
-
-func WithCustomMessageQueueConfig(config *MessageQueueConnConfig) Options {
-	return func(srv *DriverService) {
-		srv.userDefinedMessageQueueConfig = config
-	}
-}
 
 func WithCustomMetaBasesConfig(config *MetaBasesConnConfig) Options {
 	return func(srv *DriverService) {
@@ -99,61 +94,36 @@ func WithCustomDataBasesConfig(config *DataBasesConnConfig) Options {
 	}
 }
 
-type MessageQueueConnConfig struct {
-	Protocol          string
-	Host              string
-	Port              uint32
-	Type              string
-	MessageQueueTopic string
+func WithCustomRedisBasesConfig(config *RedisBasesConnConfig) Options {
+	return func(srv *DriverService) {
+		srv.userDefinedRedisConfig = config
+	}
 }
 
-func initMessageQueue(hummingbirdConfig *drivercommon.ConfigResponse, config *MessageQueueConnConfig) (mqtt.Client, string, error) {
+type RedisBasesConnConfig struct {
+	Address  string
+	Password string
+	DB       int
+}
 
+func initRedisClient(hummingbirdConfig *drivercommon.ConfigResponse, config *RedisBasesConnConfig) (*redis.Client, error) {
 	var (
-		protocol          string
-		host              string
-		port              uint32
-		messageQueueType  string
-		messageQueueTopic string
-
-		mqttClient mqtt.Client
+		address  string
+		password string
+		db       int
 	)
 
 	if config == nil {
-		protocol = hummingbirdConfig.MessageQueue.Protocol
-		host = hummingbirdConfig.MessageQueue.Host
-		port = hummingbirdConfig.MessageQueue.Port
-		messageQueueType = hummingbirdConfig.MessageQueue.Type
-		messageQueueTopic = hummingbirdConfig.MessageQueue.PublishTopicPrefix
+		address = hummingbirdConfig.RedisBases.Address
+		password = hummingbirdConfig.RedisBases.Password
+		db = int(hummingbirdConfig.RedisBases.DB)
 	} else {
-		protocol = config.Protocol
-		host = config.Host
-		port = config.Port
-		messageQueueType = config.Type
-		messageQueueTopic = config.MessageQueueTopic
+		address = config.Address
+		password = config.Password
+		db = int(int32(config.DB))
 	}
-
-	switch messageQueueType {
-	case constants.MessageQueueMqtt:
-		opts := mqtt.NewClientOptions()
-		opts.AddBroker(fmt.Sprintf("%s://%s:%d", protocol, host, port))
-		opts.SetAutoReconnect(true)
-		//opts.SetConnectRetry(true)
-		opts.SetConnectRetryInterval(3 * time.Second) // 重连间隔
-		opts.SetConnectTimeout(2 * time.Second)
-		opts.OnConnect = func(c mqtt.Client) {
-			//log.Info("mqtt connect success")
-		}
-		opts.OnConnectionLost = func(c mqtt.Client, err error) {
-			//log.Error("mqtt connect lost")
-		}
-		mqttClient = mqtt.NewClient(opts)
-		if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
-			return mqttClient, messageQueueTopic, token.Error()
-		}
-	}
-	return mqttClient, messageQueueTopic, nil
-
+	//链接redis
+	return redis.NewClient(address, password, db)
 }
 
 // MetaBasesConnConfig 数据库连接
@@ -263,15 +233,12 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 
 	driverService := &DriverService{}
 	var (
-		wg              sync.WaitGroup
-		err             error
-		cfg             *config.DriverConfig
-		log             logger.Logger
-		coreClient      *client.ResourceClient
-		db              *gorm.DB
-		mqttClient      mqtt.Client
-		mqttClientTopic string
-
+		wg             sync.WaitGroup
+		err            error
+		cfg            *config.DriverConfig
+		log            logger.Logger
+		coreClient     *client.ResourceClient
+		db             *gorm.DB
 		dataBaseClient datadb.DataBase
 	)
 
@@ -307,16 +274,19 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 		log.Errorf("init meta bases db error: %v", err)
 		os.Exit(-1)
 	}
-	mqttClient, mqttClientTopic, err = initMessageQueue(hummingbirdConfig, driverService.userDefinedMessageQueueConfig)
-	if err != nil {
-		log.Errorf("init message queue error: %v", err)
-		os.Exit(-1)
-	}
 	dataBaseClient, err = initDataBasesDB(hummingbirdConfig, driverService.userDefinedDataBasesConfig)
 	if err != nil {
 		log.Errorf("init data bases db error: %v", err)
 		os.Exit(-1)
 	}
+
+	redisClient, err := initRedisClient(hummingbirdConfig, driverService.userDefinedRedisConfig)
+	if err != nil {
+		log.Errorf("init redis client error: %v", err)
+		os.Exit(-1)
+	}
+
+	timeDataBatcher := executors.NewTimeSeriesDataBatcher(dataBaseClient)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	driverService = &DriverService{
@@ -329,7 +299,8 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 		driverServiceName: serviceName,
 		dbClient:          db,
 		dataDbClient:      dataBaseClient,
-		eventBusClient:    eventBus{client: mqttClient, topic: mqttClientTopic},
+		redisClient:       redisClient,
+		timeDataBatcher:   timeDataBatcher,
 	}
 	if err = driverService.buildRpcBaseMessage(); err != nil {
 		log.Error("buildRpcBaseMessage error:", err)
@@ -352,11 +323,6 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 	}
 
 	return driverService
-}
-
-type eventBus struct {
-	client mqtt.Client
-	topic  string
 }
 
 func (d *DriverService) buildRpcBaseMessage() error {
@@ -568,17 +534,19 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 		}, nil
 	}
 
-	err := d.dataDbClient.Insert(context.Background(), constants.DB_PREFIX+cid, data.Data, data.Time)
-	if err != nil {
-		return model.CommonResponse{
-			MsgId:        data.MsgId,
-			ErrorMessage: err.Error(),
-			Code:         constants.InsertTimeDbErrCode,
-			Success:      false,
-		}, err
+	if err := d.redisClient.UpdateDeviceData(cid, data.Time, data.Data); err != nil {
+		return model.CommonResponse{}, err
 	}
 
-	d.pushMsgToEventBus(eventBusPropertyPayload(cid, productId, data))
+	_ = d.pushMsgToRedisStream(eventBusPropertyPayload(cid, productId, data))
+
+	//放入到异步缓冲对列里面，等待批量写入。
+	d.timeDataBatcher.AddData(model.BatchInsertPropertyData{
+		DeviceID: cid,
+		T:        data.Time,
+		Data:     data.Data,
+	})
+
 	return model.CommonResponse{
 		MsgId:        data.MsgId,
 		ErrorMessage: constants.ErrorCodeMsgMap[constants.DefaultSuccessCode],
@@ -620,7 +588,7 @@ func (d *DriverService) eventReport(cid string, data model.EventReport) (model.C
 		}, err
 	}
 
-	d.pushMsgToEventBus(eventBusEventPayload(cid, productId, data))
+	d.pushMsgToRedisStream(eventBusEventPayload(cid, productId, data))
 	return model.CommonResponse{
 		MsgId:        data.MsgId,
 		ErrorMessage: constants.ErrorCodeMsgMap[constants.DefaultSuccessCode],
@@ -693,7 +661,7 @@ func (d *DriverService) connectIotPlatform(deviceId string) error {
 	if err != nil {
 		return err
 	}
-	d.pushMsgToEventBus(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOnlineEventBus))
+	_ = d.pushMsgToRedisStream(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOnlineEventBus))
 	device, ok := d.deviceCache.SearchById(deviceId)
 	if ok {
 		device.Status = commons.DeviceOnline
@@ -710,7 +678,7 @@ func (d *DriverService) disconnectIotPlatform(deviceId string) error {
 	if err != nil {
 		return err
 	}
-	d.pushMsgToEventBus(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOfflineEventBus))
+	_ = d.pushMsgToRedisStream(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOfflineEventBus))
 	device, ok := d.deviceCache.SearchById(deviceId)
 	if ok {
 		device.Status = commons.DeviceOffline
@@ -969,11 +937,8 @@ func (d *DriverService) getProductServiceByCode(productId, code string) (model.S
 	return d.productCache.GetServiceSpecByCode(productId, code)
 }
 
-func (d *DriverService) pushMsgToEventBus(payload []byte) {
-	if token := d.eventBusClient.client.Publish(d.eventBusClient.topic, 1, false, payload); token.Wait() && token.Error() != nil {
-		d.logger.Errorf("pushMsgToEventBus error: %s", token.Error())
-	}
-	return
+func (d *DriverService) pushMsgToRedisStream(payload []byte) error {
+	return d.redisClient.PushMsgToStream(payload)
 }
 
 func eventBusPropertyPayload(deviceId, productId string, report model.PropertyReport) []byte {

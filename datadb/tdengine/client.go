@@ -6,6 +6,7 @@ import (
 	"fmt"
 	_ "github.com/taosdata/driver-go/v3/taosWS"
 	"github.com/winc-link/hummingbird-sdk-go/datadb"
+	"github.com/winc-link/hummingbird-sdk-go/model"
 	"strings"
 	"time"
 )
@@ -41,6 +42,11 @@ func (c *Client) Insert(ctx context.Context, table string, data map[string]inter
 		return fmt.Errorf("failed to insert into %s: %v", table, err)
 	}
 	return nil
+}
+
+func (c *Client) InsertBatch(ctx context.Context, points []model.BatchInsertPropertyData) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 func escapeSQLString(v interface{}) string {

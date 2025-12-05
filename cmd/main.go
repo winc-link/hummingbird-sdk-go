@@ -16,12 +16,10 @@ func main() {
 	fmt.Println("test....")
 
 	driverService := service.NewDriverService("test",
-		service.WithCustomMessageQueueConfig(&service.MessageQueueConnConfig{
-			Protocol:          "tcp",
-			Host:              "124.223.78.197",
-			Port:              58090,
-			Type:              "mqtt",
-			MessageQueueTopic: "eventbus/in",
+		service.WithCustomRedisBasesConfig(&service.RedisBasesConnConfig{
+			Address:  "localhost:6379",
+			Password: "",
+			DB:       1,
 		}),
 		service.WithCustomDataBasesConfig(&service.DataBasesConnConfig{
 			Type: constants.DataBasesTdengine,

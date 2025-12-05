@@ -17,6 +17,7 @@ package client
 import (
 	"context"
 	"errors"
+	"github.com/winc-link/edge-driver-proto/thingmodel"
 	"github.com/winc-link/hummingbird-sdk-go/internal/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
@@ -30,7 +31,6 @@ import (
 	productproto "github.com/winc-link/edge-driver-proto/driverproduct"
 	driverstorage "github.com/winc-link/edge-driver-proto/driverstorge"
 	gatewayproto "github.com/winc-link/edge-driver-proto/gateway"
-	"github.com/winc-link/edge-driver-proto/thingmodel"
 )
 
 type ResourceClient struct {

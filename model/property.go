@@ -14,6 +14,8 @@
 
 package model
 
+import "time"
+
 type (
 	PropertyData struct {
 		Value interface{} `json:"value"` // 上报的属性值
@@ -101,6 +103,26 @@ type (
 		ProductId   string                 `json:"productId"`
 		MessageType string                 `json:"messageType"`
 		Data        map[string]interface{} `json:"data"`
+	}
+
+	FieldWithTimestamp struct {
+		Field     string    `json:"field"`
+		Value     string    `json:"value"`
+		Timestamp int64     `json:"timestamp"`
+		HumanTime time.Time `json:"human_time"`
+	}
+
+	DeviceDataWithTimestamps struct {
+		DeviceID   string            `json:"deviceId"`
+		Data       map[string]string `json:"data"`        // 主数据字段
+		Timestamps map[string]int64  `json:"timestamps"`  // 各字段时间戳
+		LastUpdate time.Time         `json:"last_update"` // 最后更新时间
+	}
+
+	BatchInsertPropertyData struct {
+		DeviceID string                 `json:"deviceId"`
+		T        int64                  `json:"t"`
+		Data     map[string]interface{} `json:"data"`
 	}
 )
 

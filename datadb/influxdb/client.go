@@ -3,6 +3,8 @@ package influxdb
 import (
 	"context"
 	"fmt"
+	"github.com/winc-link/hummingbird-sdk-go/constants"
+	"github.com/winc-link/hummingbird-sdk-go/model"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -34,6 +36,23 @@ func (c *Client) Insert(ctx context.Context, table string, fields map[string]int
 	// write point asynchronously
 	writeAPI.WritePoint(p)
 	// Flush writes
+	writeAPI.Flush()
+	return nil
+}
+
+func (c *Client) InsertBatch(ctx context.Context, points []model.BatchInsertPropertyData) error {
+	writeAPI := c.client.WriteAPI(c.org, c.bucket)
+	for _, p := range points {
+		ts := time.UnixMilli(p.T).UTC()
+		point := influxdb2.NewPoint(
+			constants.DB_PREFIX+p.DeviceID,
+			map[string]string{},
+			p.Data,
+			ts,
+		)
+		writeAPI.WritePoint(point)
+	}
+	// 刷盘，确保写入完成
 	writeAPI.Flush()
 	return nil
 }
