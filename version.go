@@ -14,4 +14,4 @@
 
 package hummingbird_sdk_go
 
-var SdkVersion string = "2.7"
+var SdkVersion string = "3.0"

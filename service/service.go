@@ -61,6 +61,7 @@ type DriverService struct {
 	wg     *sync.WaitGroup
 	//platform          commons.IotPlatform
 	cfg                       *config.DriverConfig
+	hummingbirdCfg            *config.HummingbirdConfig
 	driverServiceName         string
 	logger                    logger.Logger
 	deviceCache               cache.DeviceProvider
@@ -238,6 +239,7 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 		wg             sync.WaitGroup
 		err            error
 		cfg            *config.DriverConfig
+		hummingbirdCfg *config.HummingbirdConfig
 		log            logger.Logger
 		coreClient     *client.ResourceClient
 		db             *gorm.DB
@@ -271,6 +273,8 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 		os.Exit(-1)
 	}
 
+	hummingbirdCfg = initHummingbirdCfg(hummingbirdConfig)
+
 	db, err = initMetaBasesDB(hummingbirdConfig, driverService.userDefinedMetaBasesConfig)
 	if err != nil {
 		log.Errorf("init meta bases db error: %v", err)
@@ -300,6 +304,7 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 		rpcClient:                 coreClient,
 		logger:                    log,
 		cfg:                       cfg,
+		hummingbirdCfg:            hummingbirdCfg,
 		driverServiceName:         serviceName,
 		dbClient:                  db,
 		dataDbClient:              dataBaseClient,
@@ -329,6 +334,42 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 	}
 
 	return driverService
+}
+
+func initHummingbirdCfg(hummingbirdConfig *drivercommon.ConfigResponse) *config.HummingbirdConfig {
+	cfg := &config.HummingbirdConfig{}
+
+	if hummingbirdConfig.GetMetaBases() != nil {
+		cfg.MetaBases.Source = hummingbirdConfig.GetMetaBases().Source
+		cfg.MetaBases.Type = int32(hummingbirdConfig.GetMetaBases().Type)
+	}
+	if hummingbirdConfig.GetDataBases() != nil {
+		cfg.DataBases.Type = hummingbirdConfig.GetDataBases().Type
+	}
+	cfg.DataBases.InfluxDB = &config.InfluxDB{}
+	if hummingbirdConfig.GetDataBases() != nil && hummingbirdConfig.GetDataBases().GetInfluxDB() != nil {
+		cfg.DataBases.InfluxDB.Url = hummingbirdConfig.GetDataBases().GetInfluxDB().Url
+		cfg.DataBases.InfluxDB.Org = hummingbirdConfig.GetDataBases().GetInfluxDB().Org
+		cfg.DataBases.InfluxDB.Bucket = hummingbirdConfig.GetDataBases().GetInfluxDB().Bucket
+		cfg.DataBases.InfluxDB.Token = hummingbirdConfig.GetDataBases().GetInfluxDB().Token
+	}
+	cfg.DataBases.Tdengine = &config.TDengineSource{}
+	if hummingbirdConfig.GetDataBases() != nil && hummingbirdConfig.GetDataBases().GetTdengine() != nil {
+		cfg.DataBases.Tdengine.Dsn = hummingbirdConfig.GetDataBases().GetTdengine().Dsn
+	}
+	cfg.DataBases.ClickHouse = &config.ClickHouse{}
+	if hummingbirdConfig.GetDataBases() != nil && hummingbirdConfig.GetDataBases().GetClickHouse() != nil {
+		cfg.DataBases.ClickHouse.Addr = hummingbirdConfig.GetDataBases().GetClickHouse().Addr
+		cfg.DataBases.ClickHouse.Database = hummingbirdConfig.GetDataBases().GetClickHouse().Database
+		cfg.DataBases.ClickHouse.Username = hummingbirdConfig.GetDataBases().GetClickHouse().Username
+		cfg.DataBases.ClickHouse.Password = hummingbirdConfig.GetDataBases().GetClickHouse().Password
+	}
+	if hummingbirdConfig.GetRedisBases() != nil {
+		cfg.RedisBases.Address = hummingbirdConfig.RedisBases.Address
+		cfg.RedisBases.Password = hummingbirdConfig.RedisBases.Password
+		cfg.RedisBases.DB = hummingbirdConfig.RedisBases.DB
+	}
+	return cfg
 }
 
 func (d *DriverService) buildRpcBaseMessage() error {

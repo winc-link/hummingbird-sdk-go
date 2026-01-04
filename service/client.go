@@ -17,6 +17,7 @@ package service
 import (
 	"github.com/winc-link/hummingbird-sdk-go/commons"
 	"github.com/winc-link/hummingbird-sdk-go/interfaces"
+	"github.com/winc-link/hummingbird-sdk-go/internal/config"
 	"github.com/winc-link/hummingbird-sdk-go/internal/logger"
 	"github.com/winc-link/hummingbird-sdk-go/model"
 	"gorm.io/gorm"
@@ -40,6 +41,10 @@ func (d *DriverService) GetLogger() logger.Logger {
 // GetCustomParam 获取自定义参数
 func (d *DriverService) GetCustomParam() string {
 	return d.cfg.CustomParam
+}
+
+func (d *DriverService) GetHummingbirdDataConfig() *config.HummingbirdConfig {
+	return d.hummingbirdCfg
 }
 
 // GetDBClient 获取数据库连接
