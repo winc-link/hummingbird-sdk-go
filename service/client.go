@@ -142,6 +142,11 @@ func (d *DriverService) EventReport(deviceId string, data model.EventReport) (mo
 	return d.eventReport(deviceId, data)
 }
 
+// DeviceLogReport 设备日志上报
+func (d *DriverService) DeviceLogReport(deviceId string, data model.DeviceLogReport) (model.CommonResponse, error) {
+	return d.deviceLogReport(deviceId, data)
+}
+
 // BatchReport 设备批量上报属性和事件 如果data参数中的Sys.Ack设置为1，则该方法会同步阻塞等待云端返回结果。
 // 如非必要，不建议设置Sys.Ack
 // 废弃

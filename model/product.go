@@ -22,17 +22,17 @@ import (
 type (
 	Product struct {
 		//CreateAt     time.Time
-		Id           string
-		Name         string
-		Key          string
-		Description  string
-		NodeType     commons.ProductNodeType
-		DataFormat   string
-		NetType      commons.ProductNetType
-		ProtocolType commons.ProductProtocolType
-		Properties   []Property //属性
-		Events       []Event    //事件
-		Services     []Service  //服务
+		Id              string
+		Name            string
+		Key             string
+		Description     string
+		NodeType        commons.ProductNodeType
+		DataFormat      string
+		LuaScriptEnable bool
+		LuaScript       string
+		Properties      []Property //属性
+		Events          []Event    //事件
+		Services        []Service  //服务
 	}
 
 	Service struct {
@@ -69,6 +69,7 @@ type (
 		Required    bool
 		AccessMode  string
 		TypeSpec    TypeSpec
+		StorageMode int64
 		External    map[string]string
 	}
 
@@ -87,16 +88,16 @@ type (
 
 func TransformProductModel(p *driverproduct.Product) Product {
 	return Product{
-		Id:           p.GetId(),
-		Name:         p.GetName(),
-		Key:          p.GetKey(),
-		Description:  p.GetDescription(),
-		NodeType:     commons.TransformRpcNodeTypeToModel(p.NodeType),
-		NetType:      commons.TransformRpcNetTypeToModel(p.NetType),
-		ProtocolType: commons.TransformRpcProtocolToModel(p.Protocol),
-		Properties:   propertyModels(p.GetProperties()),
-		Events:       eventModels(p.GetEvents()),
-		Services:     serviceModels(p.GetActions()),
+		Id:              p.GetId(),
+		Name:            p.GetName(),
+		Key:             p.GetKey(),
+		Description:     p.GetDescription(),
+		NodeType:        commons.TransformRpcNodeTypeToModel(p.NodeType),
+		LuaScript:       p.GetLuaScript(),
+		LuaScriptEnable: p.GetLuaScriptEnable(),
+		Properties:      propertyModels(p.GetProperties()),
+		Events:          eventModels(p.GetEvents()),
+		Services:        serviceModels(p.GetActions()),
 	}
 }
 
@@ -110,6 +111,7 @@ func propertyModels(p []*driverproduct.Properties) []Property {
 			Description: p[i].GetDescription(),
 			Required:    p[i].GetRequired(),
 			AccessMode:  p[i].GetAccessMode(),
+			StorageMode: p[i].GetStorageMode(),
 			TypeSpec:    TransformTypeSpecModel(p[i].GetTypeSpec()),
 			External:    p[i].GetExternal(),
 		})

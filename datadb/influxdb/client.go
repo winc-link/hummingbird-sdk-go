@@ -3,7 +3,6 @@ package influxdb
 import (
 	"context"
 	"fmt"
-	"github.com/winc-link/hummingbird-sdk-go/constants"
 	"github.com/winc-link/hummingbird-sdk-go/model"
 	"time"
 
@@ -12,41 +11,44 @@ import (
 )
 
 type Client struct {
-	org, bucket string
-	client      influxdb2.Client
+	org, bucket, logBucket string
+	client                 influxdb2.Client
 }
 
 type DbClient struct {
-	Org    string
-	Bucket string
-	Url    string
-	Token  string
+	Org       string
+	Bucket    string //存储设备上报数据
+	LogBucket string //存储设备日志信息
+	Url       string
+	Token     string
 }
 
-func (c *Client) Insert(ctx context.Context, table string, fields map[string]interface{}, t int64) (err error) {
-	//get non-blocking write client
-	//timestamp := time.Now()
-	var ts time.Time
-	ts = time.UnixMilli(t).UTC()
+func (c *Client) InsertDeviceProperties(ctx context.Context, p model.BatchInsertPropertyData) error {
 	writeAPI := c.client.WriteAPI(c.org, c.bucket)
-	p := influxdb2.NewPoint(table,
-		map[string]string{},
-		fields,
-		ts)
-	// write point asynchronously
-	writeAPI.WritePoint(p)
-	// Flush writes
+	ts := time.UnixMilli(p.T).UTC()
+	point := influxdb2.NewPoint(
+		"device_properties",
+		map[string]string{
+			"device_id": p.DeviceID,
+		},
+		p.Data,
+		ts,
+	)
+	writeAPI.WritePoint(point)
+	// 刷盘，确保写入完成
 	writeAPI.Flush()
 	return nil
 }
 
-func (c *Client) InsertBatch(ctx context.Context, points []model.BatchInsertPropertyData) error {
+func (c *Client) InsertBatchDeviceProperties(ctx context.Context, points []model.BatchInsertPropertyData) error {
 	writeAPI := c.client.WriteAPI(c.org, c.bucket)
 	for _, p := range points {
 		ts := time.UnixMilli(p.T).UTC()
 		point := influxdb2.NewPoint(
-			constants.DB_PREFIX+p.DeviceID,
-			map[string]string{},
+			"device_properties",
+			map[string]string{
+				"device_id": p.DeviceID,
+			},
 			p.Data,
 			ts,
 		)
@@ -57,28 +59,60 @@ func (c *Client) InsertBatch(ctx context.Context, points []model.BatchInsertProp
 	return nil
 }
 
-func (c *Client) InsertPropertyData(ctx context.Context, tag map[string]string, fields map[string]interface{}, t int64) (err error) {
-	var ts time.Time
-	ts = time.UnixMilli(t).UTC()
+func (c *Client) InsertBatchDeviceEvent(ctx context.Context, p model.BatchInsertEventData) error {
 	writeAPI := c.client.WriteAPI(c.org, c.bucket)
-	p := influxdb2.NewPoint("property_data",
-		tag,
-		fields,
-		ts)
-	writeAPI.WritePoint(p)
+	ts := time.UnixMilli(p.T).UTC()
+	point := influxdb2.NewPoint(
+		"device_events",
+		map[string]string{
+			"device_id":  p.DeviceID,
+			"event_type": p.EventType,
+		},
+		p.Data,
+		ts,
+	)
+	writeAPI.WritePoint(point)
+	// 刷盘，确保写入完成
 	writeAPI.Flush()
 	return nil
 }
 
-func (c *Client) InsertEventData(ctx context.Context, tag map[string]string, fields map[string]interface{}, t int64) (err error) {
-	var ts time.Time
-	ts = time.UnixMilli(t).UTC()
+func (c *Client) InsertBatchDeviceEvents(ctx context.Context, points []model.BatchInsertEventData) error {
 	writeAPI := c.client.WriteAPI(c.org, c.bucket)
-	p := influxdb2.NewPoint("event_data",
-		tag,
-		fields,
-		ts)
-	writeAPI.WritePoint(p)
+	for _, p := range points {
+		ts := time.UnixMilli(p.T).UTC()
+		point := influxdb2.NewPoint(
+			"device_events",
+			map[string]string{
+				"device_id":  p.DeviceID,
+				"event_type": p.EventType,
+			},
+			p.Data,
+			ts,
+		)
+		writeAPI.WritePoint(point)
+	}
+	// 刷盘，确保写入完成
+	writeAPI.Flush()
+	return nil
+}
+
+func (c *Client) InsertBatchDeviceLogs(ctx context.Context, points []model.BatchInsertDeviceLogData) error {
+	writeAPI := c.client.WriteAPI(c.org, c.logBucket)
+	for _, p := range points {
+		ts := time.UnixMilli(p.T).UTC()
+		point := influxdb2.NewPoint(
+			"device-log",
+			map[string]string{
+				"device_id": p.DeviceID,
+				"log_type":  string(p.Data.LogType),
+			},
+			model.CovertLogDataToMap(p.Data),
+			ts,
+		)
+		writeAPI.WritePoint(point)
+	}
+	// 刷盘，确保写入完成
 	writeAPI.Flush()
 	return nil
 }
@@ -96,8 +130,9 @@ func InitClientInfluxDB(config DbClient) (datadb.DataBase, error) {
 		return nil, fmt.Errorf("influxdb2 ping failed")
 	}
 	return &Client{
-		client: client,
-		org:    config.Org,
-		bucket: config.Bucket,
+		client:    client,
+		org:       config.Org,
+		bucket:    config.Bucket,
+		logBucket: config.LogBucket,
 	}, nil
 }

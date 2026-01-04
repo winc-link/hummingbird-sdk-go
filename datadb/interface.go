@@ -6,7 +6,10 @@ import (
 )
 
 type DataBase interface {
-	Insert(ctx context.Context, table string, fields map[string]interface{}, t int64) (err error)
-	InsertBatch(ctx context.Context, points []model.BatchInsertPropertyData) error
+	InsertDeviceProperties(ctx context.Context, p model.BatchInsertPropertyData) error
+	InsertBatchDeviceProperties(ctx context.Context, points []model.BatchInsertPropertyData) error
+	InsertBatchDeviceEvent(ctx context.Context, p model.BatchInsertEventData) error
+	InsertBatchDeviceEvents(ctx context.Context, points []model.BatchInsertEventData) error
+	InsertBatchDeviceLogs(ctx context.Context, points []model.BatchInsertDeviceLogData) error
 	Close()
 }

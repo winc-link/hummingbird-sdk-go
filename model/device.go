@@ -39,6 +39,8 @@ type (
 		Transport    string
 		SlaveId      string
 		Period       string
+		Imei         string
+		Firmware     string
 		External     map[string]string
 	}
 )
@@ -147,6 +149,8 @@ func TransformDeviceModel(dev *driverdevice.Device) Device {
 	d.Transport = dev.GetTransport()
 	d.SlaveId = dev.GetSlaveId()
 	d.Period = dev.GetPeriod()
+	d.Imei = dev.GetImei()
+	d.Firmware = dev.GetFirmware()
 	return d
 }
 

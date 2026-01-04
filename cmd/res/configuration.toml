@@ -6,7 +6,7 @@ LogLevel = "INFO"
 
 [Clients]
 [Clients.Core]
-Address = "124.223.78.197:57081"
+Address = "*.221.36.14:57081"
 UseTLS = false
 CertFilePath = ""
 ClientId = ""
@@ -14,11 +14,11 @@ Username = ""
 Password = ""
 
 [Service]
-ID = "70239111"
-Name = "MQTT协议驱动-70239111"
+ID = "63124939"
+Name = "MQTT协议驱动-63124939"
 Activated = false
 [Service.Server]
-Address = "0.0.0.0:43696"
+Address = "0.0.0.0:41395"
 UseTLS = false
 CertFile = ""
 KeyFile = ""

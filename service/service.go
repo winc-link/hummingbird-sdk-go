@@ -60,20 +60,22 @@ type DriverService struct {
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
 	//platform          commons.IotPlatform
-	cfg               *config.DriverConfig
-	driverServiceName string
-	logger            logger.Logger
-	deviceCache       cache.DeviceProvider
-	productCache      cache.ProductProvider
-	driver            interfaces.Driver
-	rpcClient         *client.ResourceClient
-	rpcServer         *server.RpcService
-	baseMessage       commons.BaseMessage
-	dbClient          *gorm.DB
-	dataDbClient      datadb.DataBase
-	redisClient       *redis.Client
-	timeDataBatcher   *executors.TimeDataBatcher
-	readyChan         chan struct{}
+	cfg                       *config.DriverConfig
+	driverServiceName         string
+	logger                    logger.Logger
+	deviceCache               cache.DeviceProvider
+	productCache              cache.ProductProvider
+	driver                    interfaces.Driver
+	rpcClient                 *client.ResourceClient
+	rpcServer                 *server.RpcService
+	baseMessage               commons.BaseMessage
+	dbClient                  *gorm.DB
+	dataDbClient              datadb.DataBase
+	redisClient               *redis.Client
+	propertiesTimeDataBatcher *executors.PropertiesTimeDataBatcher
+	eventsTimeDataBatcher     *executors.DeviceEventTimeDataBatcher
+	logsTimeDataBatcher       *executors.DeviceLogsTimeDataBatcher
+	readyChan                 chan struct{}
 
 	userDefinedMetaBasesConfig *MetaBasesConnConfig
 	userDefinedDataBasesConfig *DataBasesConnConfig
@@ -286,21 +288,25 @@ func NewDriverService(serviceName string, opts ...Options) *DriverService {
 		os.Exit(-1)
 	}
 
-	timeDataBatcher := executors.NewTimeSeriesDataBatcher(dataBaseClient)
+	propertiesTimeDataBatcher := executors.NewTimeDevicePropertiesDataBatcher(dataBaseClient, log, cfg.GetCustomParam())
+	eventsTimeDataBatcher := executors.NewTimeDeviceEventsDataBatcher(dataBaseClient, log, cfg.GetCustomParam())
+	logsTimeDataBatcher := executors.NewTimeDeviceLogsDataBatcher(dataBaseClient, log, cfg.GetCustomParam())
 
 	ctx, cancel := context.WithCancel(context.Background())
 	driverService = &DriverService{
-		ctx:               ctx,
-		cancel:            cancel,
-		wg:                &wg,
-		rpcClient:         coreClient,
-		logger:            log,
-		cfg:               cfg,
-		driverServiceName: serviceName,
-		dbClient:          db,
-		dataDbClient:      dataBaseClient,
-		redisClient:       redisClient,
-		timeDataBatcher:   timeDataBatcher,
+		ctx:                       ctx,
+		cancel:                    cancel,
+		wg:                        &wg,
+		rpcClient:                 coreClient,
+		logger:                    log,
+		cfg:                       cfg,
+		driverServiceName:         serviceName,
+		dbClient:                  db,
+		dataDbClient:              dataBaseClient,
+		redisClient:               redisClient,
+		propertiesTimeDataBatcher: propertiesTimeDataBatcher,
+		eventsTimeDataBatcher:     eventsTimeDataBatcher,
+		logsTimeDataBatcher:       logsTimeDataBatcher,
 	}
 	if err = driverService.buildRpcBaseMessage(); err != nil {
 		log.Error("buildRpcBaseMessage error:", err)
@@ -406,24 +412,24 @@ var (
 )
 
 // startDeviceStatusChecker 补偿机制：防止因为异常或漏判导致设备状态卡在“离线”状态
-func (d *DriverService) startDeviceStatusChecker() {
-	ticker := time.NewTicker(5 * time.Minute)
-	go func() {
-		for range ticker.C {
-			for deviceID, dev := range d.deviceCache.All() {
-				if dev.Status == commons.DeviceOffline {
-					// 检查最近是否有上报
-					if v, ok := deviceStatusMap.Load(deviceID); ok {
-						status := v.(*DeviceStatus)
-						if time.Since(status.LastReportTime) <= 5*time.Minute {
-							d.Online(deviceID)
-						}
-					}
-				}
-			}
-		}
-	}()
-}
+//func (d *DriverService) startDeviceStatusChecker() {
+//	ticker := time.NewTicker(5 * time.Minute)
+//	go func() {
+//		for range ticker.C {
+//			for deviceID, dev := range d.deviceCache.All() {
+//				if dev.Status == commons.DeviceOffline {
+//					// 检查最近是否有上报
+//					if v, ok := deviceStatusMap.Load(deviceID); ok {
+//						status := v.(*DeviceStatus)
+//						if time.Since(status.LastReportTime) <= 5*time.Minute {
+//							d.Online(deviceID)
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}()
+//}
 
 func (d *DriverService) start(driver interfaces.Driver) error {
 	var err error
@@ -524,7 +530,18 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 	if data.MsgId == "" {
 		data.MsgId = uuid.New().String()
 	}
-	productId, ok := d.getProductIdByDeviceId(cid)
+	// 根据设备ID获取设备信息
+	device, ok := d.getDeviceById(cid)
+	if !ok {
+		return model.CommonResponse{
+			MsgId:        data.MsgId,
+			ErrorMessage: constants.ErrorCodeMsgMap[constants.DeviceNotFound],
+			Code:         constants.DeviceNotFound,
+			Success:      false,
+		}, nil
+	}
+	// 根据产品ID获取产品信息
+	product, ok := d.GetProductById(device.ProductId)
 	if !ok {
 		return model.CommonResponse{
 			MsgId:        data.MsgId,
@@ -533,19 +550,55 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 			Success:      false,
 		}, nil
 	}
+	//如果产品开启了Lua解析脚本，需要对设备上报过来的值进行二次解析。
+	if product.LuaScriptEnable {
 
-	if err := d.redisClient.UpdateDeviceData(cid, data.Time, data.Data); err != nil {
-		return model.CommonResponse{}, err
 	}
 
-	_ = d.pushMsgToRedisStream(eventBusPropertyPayload(cid, productId, data))
+	// 把设备最新属性数据放入redis中，以便于页面快速查询
+	if err := d.redisClient.UpdateDeviceData(cid, data.Time, data.Data); err != nil {
+		return model.CommonResponse{
+			MsgId:        data.MsgId,
+			ErrorMessage: constants.ErrorCodeMsgMap[constants.RedisWriteErrorCode],
+			Code:         constants.RedisWriteErrorCode,
+			Success:      false,
+		}, err
+	}
 
-	//放入到异步缓冲对列里面，等待批量写入。
-	d.timeDataBatcher.AddData(model.BatchInsertPropertyData{
-		DeviceID: cid,
-		T:        data.Time,
-		Data:     data.Data,
-	})
+	// 根据设备ID记录每个设备每日上传多少条数据，以便于做统计（设备消息排行榜、设备历史消息统计）
+	if err := d.redisClient.IncrDeviceMsgCount(cid, constants.PropertyMsg); err != nil {
+		return model.CommonResponse{
+			MsgId:        data.MsgId,
+			ErrorMessage: constants.ErrorCodeMsgMap[constants.RedisWriteErrorCode],
+			Code:         constants.RedisWriteErrorCode,
+			Success:      false,
+		}, err
+	}
+
+	// 把消息推送到redis消息队列中，后端程序消费。
+	_ = d.pushMsgToRedisStream(eventBusPropertyPayload(cid, product.Id, data))
+
+	//通过属性的storageMode字段，找到要存入时许数据库的字段
+	storeHistoryKeyMap := make(map[string]struct{})
+	for _, property := range product.Properties {
+		if property.StorageMode == int64(constants.StoreHistory) {
+			storeHistoryKeyMap[property.Code] = struct{}{}
+		}
+	}
+	propertiesData := make(map[string]interface{})
+	for code, value := range data.Data {
+		if _, ok := storeHistoryKeyMap[code]; ok {
+			propertiesData[code] = value
+		}
+	}
+	//放入到异步缓冲对列里面，等待时许数据库批量写入。
+	if len(propertiesData) > 0 {
+		d.propertiesTimeDataBatcher.AddData(model.BatchInsertPropertyData{
+			DeviceID: cid,
+			T:        data.Time,
+			Data:     propertiesData,
+		})
+	}
 
 	return model.CommonResponse{
 		MsgId:        data.MsgId,
@@ -578,19 +631,35 @@ func (d *DriverService) eventReport(cid string, data model.EventReport) (model.C
 		b, _ := json.Marshal(v)
 		eventData[k] = string(b)
 	}
-	err := d.dataDbClient.Insert(context.Background(), constants.DB_PREFIX+cid, eventData, data.Time)
-	if err != nil {
-		return model.CommonResponse{
-			MsgId:        data.MsgId,
-			ErrorMessage: err.Error(),
-			Code:         constants.InsertTimeDbErrCode,
-			Success:      false,
-		}, err
+
+	if err := d.redisClient.IncrDeviceMsgCount(cid, constants.EventMsg); err != nil {
+		return model.CommonResponse{}, err
 	}
 
-	d.pushMsgToRedisStream(eventBusEventPayload(cid, productId, data))
+	d.eventsTimeDataBatcher.AddData(model.BatchInsertEventData{
+		DeviceID:  cid,
+		T:         data.Time,
+		EventType: data.EventType,
+		Data:      eventData,
+	})
+
+	_ = d.pushMsgToRedisStream(eventBusEventPayload(cid, productId, data))
 	return model.CommonResponse{
 		MsgId:        data.MsgId,
+		ErrorMessage: constants.ErrorCodeMsgMap[constants.DefaultSuccessCode],
+		Code:         constants.DefaultSuccessCode,
+		Success:      true,
+	}, nil
+}
+
+func (d *DriverService) deviceLogReport(cid string, data model.DeviceLogReport) (model.CommonResponse, error) {
+	d.logsTimeDataBatcher.AddData(model.BatchInsertDeviceLogData{
+		T:        data.T,
+		DeviceID: cid,
+		Data:     data.Data,
+	})
+	return model.CommonResponse{
+		MsgId:        data.Data.MessageId,
 		ErrorMessage: constants.ErrorCodeMsgMap[constants.DefaultSuccessCode],
 		Code:         constants.DefaultSuccessCode,
 		Success:      true,

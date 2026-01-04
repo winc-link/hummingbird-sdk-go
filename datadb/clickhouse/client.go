@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/winc-link/hummingbird-sdk-go/datadb"
+	"github.com/winc-link/hummingbird-sdk-go/model"
 	"strings"
 	"time"
 
@@ -19,6 +20,36 @@ type DbClient struct {
 
 type ClickHouse struct {
 	conn clickhouse.Conn
+}
+
+func (c *ClickHouse) InsertDeviceProperties(ctx context.Context, p model.BatchInsertPropertyData) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClickHouse) InsertBatchDeviceProperties(ctx context.Context, points []model.BatchInsertPropertyData) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClickHouse) InsertBatchDeviceEvent(ctx context.Context, p model.BatchInsertEventData) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClickHouse) InsertBatchDeviceEvents(ctx context.Context, points []model.BatchInsertEventData) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClickHouse) InsertBatchDeviceLogs(ctx context.Context, points []model.BatchInsertDeviceLogData) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c *ClickHouse) InsertBatch(ctx context.Context, points []model.BatchInsertPropertyData) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (c *ClickHouse) Insert(ctx context.Context, table string, fields map[string]interface{}, t int64) (err error) {

@@ -11,8 +11,9 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.14.0
 	github.com/natefinch/lumberjack v2.0.0+incompatible
 	github.com/redis/go-redis/v9 v9.17.2
+	github.com/spf13/cast v1.10.0
 	github.com/taosdata/driver-go/v3 v3.7.0
-	github.com/winc-link/edge-driver-proto v0.0.0-20251205012655-8bb38bf05c8f
+	github.com/winc-link/edge-driver-proto v0.0.0-20251219035120-8f2b9389cebe
 	github.com/zeromicro/go-zero v1.9.3
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.65.0
@@ -37,7 +38,6 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
-	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect

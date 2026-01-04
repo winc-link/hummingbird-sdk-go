@@ -9,14 +9,15 @@ import (
 	"github.com/winc-link/hummingbird-sdk-go/internal/logger"
 	"github.com/winc-link/hummingbird-sdk-go/model"
 	"github.com/zeromicro/go-zero/core/executors"
+
 	"time"
 )
 
-type PropertiesTimeDataBatcher struct {
+type DeviceLogsTimeDataBatcher struct {
 	executor *executors.ChunkExecutor
 }
 
-func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logger, customParam string) *PropertiesTimeDataBatcher {
+func NewTimeDeviceLogsDataBatcher(dataDb datadb.DataBase, log logger.Logger, customParam string) *DeviceLogsTimeDataBatcher {
 	var (
 		dataBatchSize     = 10 //1024个
 		dataBatchInterval = 10 //10s
@@ -39,16 +40,17 @@ func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logge
 		}
 	}
 
-	return &PropertiesTimeDataBatcher{
+	return &DeviceLogsTimeDataBatcher{
 		executor: executors.NewChunkExecutor(
 			func(tasks []any) {
-				// 批量写入
-				data := make([]model.BatchInsertPropertyData, 0, len(tasks))
+				// 批量写入日志
+				data := make([]model.BatchInsertDeviceLogData, 0, len(tasks))
+
 				for _, task := range tasks {
-					data = append(data, task.(model.BatchInsertPropertyData))
+					data = append(data, task.(model.BatchInsertDeviceLogData))
 				}
 				// 一次性写入数据库
-				err := dataDb.InsertBatchDeviceProperties(context.Background(), data)
+				err := dataDb.InsertBatchDeviceLogs(context.Background(), data)
 				if err != nil {
 					log.Error("Insert batch failed:", err)
 				}
@@ -58,6 +60,7 @@ func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logge
 		),
 	}
 }
-func (l *PropertiesTimeDataBatcher) AddData(msg any) {
+
+func (l *DeviceLogsTimeDataBatcher) AddData(msg any) {
 	_ = l.executor.Add(msg, 1)
 }

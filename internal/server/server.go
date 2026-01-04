@@ -244,8 +244,28 @@ func (server *RpcService) ThingModelMsgIssue(ctx context.Context, request *thing
 		if err != nil {
 			server.logger.Errorf("handleActionExecute error: %s", err)
 		}
-	case thingmodel.OperationType_CUSTOM_MQTT_PUBLISH:
-		//server.customMqttMessage.CustomMqttMessage("", request.Data)
+	case thingmodel.OperationType_PROPERTY_REPORT:
+		var req model.PropertyReport
+		if err := decoder(request.GetData(), &req); err != nil {
+			server.logger.Errorf("decode data error: %s", err)
+			return new(emptypb.Empty), status.Errorf(codes.Internal, "decode data error: %s", err)
+		}
+		err := server.driverProvider.HandlePropertyReportDebug(ctx, deviceId, req)
+		if err != nil {
+			server.logger.Errorf("HandlePropertyReportDebug error: %s", err)
+			return new(emptypb.Empty), status.Errorf(codes.Unknown, err.Error())
+		}
+	case thingmodel.OperationType_EVENT_REPORT:
+		var req model.EventReport
+		if err := decoder(request.GetData(), &req); err != nil {
+			server.logger.Errorf("decode data error: %s", err)
+			return new(emptypb.Empty), status.Errorf(codes.Internal, "decode data error: %s", err)
+		}
+		err := server.driverProvider.HandleEventReportDebug(ctx, deviceId, req)
+		if err != nil {
+			server.logger.Errorf("HandleEventReportDebug error: %s", err)
+			return new(emptypb.Empty), status.Errorf(codes.Unknown, err.Error())
+		}
 	default:
 		return new(emptypb.Empty), status.Errorf(codes.InvalidArgument, "unsupported operation type")
 	}
@@ -323,7 +343,7 @@ func (server *RpcService) Start() error {
 	drivercommon.RegisterCommonServer(server.s, server)
 	productcallback.RegisterProductCallBackServiceServer(server.s, server)
 	devicecallback.RegisterDeviceCallBackServiceServer(server.s, server)
-	cloudinstancecallback.RegisterCloudInstanceCallBackServiceServer(server.s, server)
+	//cloudinstancecallback.RegisterCloudInstanceCallBackServiceServer(server.s, server)
 	thingmodel.RegisterThingModelDownServiceServer(server.s, server)
 	thingmodel.RegisterMessageRateServiceServer(server.s, server)
 	monitor.StartQPSCollector()

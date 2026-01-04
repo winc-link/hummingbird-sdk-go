@@ -14,7 +14,9 @@
 
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type (
 	PropertyData struct {
@@ -26,6 +28,10 @@ type (
 	PropertyReport struct {
 		CommonRequest `json:",inline"`
 		Data          map[string]interface{} `json:"data"`
+	}
+	// CustomPrivateReport 用户私有协议
+	CustomPrivateReport struct {
+		RawData []byte `json:"raw_data"`
 	}
 
 	// PropertySet 属性下发
@@ -118,13 +124,16 @@ type (
 		Timestamps map[string]int64  `json:"timestamps"`  // 各字段时间戳
 		LastUpdate time.Time         `json:"last_update"` // 最后更新时间
 	}
-
-	BatchInsertPropertyData struct {
-		DeviceID string                 `json:"deviceId"`
-		T        int64                  `json:"t"`
-		Data     map[string]interface{} `json:"data"`
-	}
 )
+
+func CovertLogDataToMap(d DeviceLogData) map[string]interface{} {
+	res := make(map[string]interface{})
+	res["message_id"] = d.MessageId
+	res["log_type"] = d.LogType
+	res["message"] = d.Message
+	res["status"] = d.Status
+	return res
+}
 
 func NewPropertyReport(commonRequest CommonRequest, data map[string]interface{}) PropertyReport {
 	return PropertyReport{

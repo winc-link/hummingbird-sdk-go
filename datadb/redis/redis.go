@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"github.com/winc-link/hummingbird-sdk-go/constants"
 	"github.com/winc-link/hummingbird-sdk-go/model"
 	"strconv"
 	"time"
@@ -25,7 +26,7 @@ func (c *Client) PushMsgToStream(data []byte) error {
 	_, err := c.client.XAdd(context.Background(), &redis.XAddArgs{
 		Stream: streamKey,
 		ID:     "*", // 自动生成消息ID
-		Values: data,
+		Values: map[string]interface{}{"msg": string(data)},
 	}).Result()
 
 	if err != nil {
@@ -100,6 +101,33 @@ func (c *Client) UpdateDeviceData(deviceID string, reportTime int64, data map[st
 	// 执行管道操作
 	_, err := pipe.Exec(c.ctx)
 	return err
+}
+
+// IncrDeviceMsgCount 使用redis ZSET 统计设备每天消息上报数量
+func (c *Client) IncrDeviceMsgCount(deviceID string, msgType string) error {
+	var key string
+	if msgType == constants.PropertyMsg {
+		key = todayPropertyKey()
+	} else if msgType == constants.EventMsg {
+		key = todayEventKey()
+	}
+
+	if err := c.client.ZIncrBy(c.ctx, key, 1, deviceID).Err(); err != nil {
+		return err
+	}
+
+	ttl := 15 * 24 * time.Hour
+	_ = c.client.ExpireNX(c.ctx, key, ttl).Err()
+
+	return nil
+}
+
+func todayPropertyKey() string {
+	return "iot:device:msg:property:count:" + time.Now().Format("2006-01-02")
+}
+
+func todayEventKey() string {
+	return "iot:device:msg:event:count:" + time.Now().Format("2006-01-02")
 }
 
 // UpdateSingleField 更新单个字段

@@ -30,6 +30,7 @@ const (
 	PropertyCodeNotFoundError string = "property code not found"
 	EventCodeNotFoundError    string = "event code not found"
 	ReportDataLengthError     string = "data length is greater than the defined"
+	RedisWriteError           string = "redis write error"
 )
 
 //type ErrorCode int
@@ -49,6 +50,7 @@ const (
 	EventCodeNotFound           int = 40004
 	ReportDataLengthErrorCode   int = 40005
 	InsertTimeDbErrCode         int = 50001
+	RedisWriteErrorCode         int = 50002
 )
 
 var ErrorCodeMsgMap = map[int]string{
@@ -64,4 +66,5 @@ var ErrorCodeMsgMap = map[int]string{
 	PropertyCodeNotFound:        PropertyCodeNotFoundError,
 	EventCodeNotFound:           EventCodeNotFoundError,
 	ReportDataLengthErrorCode:   ReportDataLengthError,
+	RedisWriteErrorCode:         RedisWriteError,
 }

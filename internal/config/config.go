@@ -22,11 +22,8 @@ import (
 )
 
 const (
-	DefaultConfigFilePath     = "/etc/driver/res/configuration.toml"
-	TestDefaultConfigFilePath = "cmd/res/configuration.toml"
-
-	Core       = "Core"
-	MQTTBroker = "MQTTBroker"
+	DefaultConfigFilePath = "/etc/driver/res/configuration.toml"
+	Core                  = "Core"
 )
 
 type (
@@ -72,6 +69,10 @@ type (
 
 func (d *DriverConfig) GetServiceID() string {
 	return d.Service.ID
+}
+
+func (d *DriverConfig) GetCustomParam() string {
+	return d.CustomParam
 }
 
 var FilePath string

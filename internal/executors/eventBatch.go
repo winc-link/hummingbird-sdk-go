@@ -12,11 +12,11 @@ import (
 	"time"
 )
 
-type PropertiesTimeDataBatcher struct {
+type DeviceEventTimeDataBatcher struct {
 	executor *executors.ChunkExecutor
 }
 
-func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logger, customParam string) *PropertiesTimeDataBatcher {
+func NewTimeDeviceEventsDataBatcher(dataDb datadb.DataBase, log logger.Logger, customParam string) *DeviceEventTimeDataBatcher {
 	var (
 		dataBatchSize     = 10 //1024个
 		dataBatchInterval = 10 //10s
@@ -39,16 +39,17 @@ func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logge
 		}
 	}
 
-	return &PropertiesTimeDataBatcher{
+	return &DeviceEventTimeDataBatcher{
 		executor: executors.NewChunkExecutor(
 			func(tasks []any) {
-				// 批量写入
-				data := make([]model.BatchInsertPropertyData, 0, len(tasks))
+				// 批量写入日志
+				data := make([]model.BatchInsertEventData, 0, len(tasks))
+
 				for _, task := range tasks {
-					data = append(data, task.(model.BatchInsertPropertyData))
+					data = append(data, task.(model.BatchInsertEventData))
 				}
 				// 一次性写入数据库
-				err := dataDb.InsertBatchDeviceProperties(context.Background(), data)
+				err := dataDb.InsertBatchDeviceEvents(context.Background(), data)
 				if err != nil {
 					log.Error("Insert batch failed:", err)
 				}
@@ -58,6 +59,7 @@ func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logge
 		),
 	}
 }
-func (l *PropertiesTimeDataBatcher) AddData(msg any) {
+
+func (l *DeviceEventTimeDataBatcher) AddData(msg any) {
 	_ = l.executor.Add(msg, 1)
 }

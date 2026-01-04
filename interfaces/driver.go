@@ -33,4 +33,8 @@ type Driver interface {
 	HandlePropertyGet(ctx context.Context, deviceId string, data model.PropertyGet) error
 	//HandleServiceExecute 设备服务调用
 	HandleServiceExecute(ctx context.Context, deviceId string, data model.ServiceExecuteRequest) error
+	// HandlePropertyReportDebug 模拟设备属性上报
+	HandlePropertyReportDebug(ctx context.Context, deviceId string, data model.PropertyReport) error
+	// HandleEventReportDebug 模拟设备事件上报
+	HandleEventReportDebug(ctx context.Context, deviceId string, data model.EventReport) error
 }
