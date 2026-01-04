@@ -1,0 +1,8 @@
+2026-01-04T16:57:47.395+0800 [31mERROR[0m service/service.go:266 new resource client error: context deadline exceeded rpcServer
+2026-01-04T16:58:17.991+0800 [31mERROR[0m service/service.go:266 new resource client error: context deadline exceeded rpcServer
+2026-01-04T16:59:05.649+0800 [34mINFO[0m server/server.go:360 Server starting ( [::]:41395 )
+2026-01-04T16:59:05.649+0800 [34mINFO[0m server/server.go:361 Server start success.
+2026-01-04T16:59:23.813+0800 [34mINFO[0m service/service.go:501 got stop signal, exit...
+2026-01-04T16:59:23.814+0800 [34mINFO[0m server/server.go:354 Server shutting down
+2026-01-04T16:59:23.814+0800 [34mINFO[0m server/server.go:357 Server shut down
+2026-01-04T16:59:23.814+0800 [34mINFO[0m server/server.go:372 Server stopped

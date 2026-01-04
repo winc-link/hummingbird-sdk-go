@@ -18,8 +18,8 @@ type PropertiesTimeDataBatcher struct {
 
 func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logger, customParam string) *PropertiesTimeDataBatcher {
 	var (
-		dataBatchSize     = 10 //1024个
-		dataBatchInterval = 10 //10s
+		dataBatchSize     = 100 //100个
+		dataBatchInterval = 10  //10s
 	)
 	customParamMap := make(map[string]interface{})
 	if customParam != "" {
@@ -39,6 +39,8 @@ func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logge
 		}
 	}
 
+	log.Infof("batch report dataBatchSize :%d dataBatchInterval:%d", dataBatchSize, dataBatchInterval)
+
 	return &PropertiesTimeDataBatcher{
 		executor: executors.NewChunkExecutor(
 			func(tasks []any) {
@@ -48,6 +50,7 @@ func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logge
 					data = append(data, task.(model.BatchInsertPropertyData))
 				}
 				// 一次性写入数据库
+				log.Info("batch insert data:", data)
 				err := dataDb.InsertBatchDeviceProperties(context.Background(), data)
 				if err != nil {
 					log.Error("Insert batch failed:", err)

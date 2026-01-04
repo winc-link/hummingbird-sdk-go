@@ -6,7 +6,7 @@ LogLevel = "INFO"
 
 [Clients]
 [Clients.Core]
-Address = "*.221.36.14:57081"
+Address = "124.221.36.14:57081"
 UseTLS = false
 CertFilePath = ""
 ClientId = ""
