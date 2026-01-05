@@ -11,6 +11,7 @@ import (
 )
 
 var streamKey = "iot-stream"
+var channelKey = "iot-channel"
 
 type Client struct {
 	ctx    context.Context
@@ -29,6 +30,14 @@ func (c *Client) PushMsgToStream(data []byte) error {
 		Values: map[string]interface{}{"msg": string(data)},
 	}).Result()
 
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) PushMsgToChannel(data []byte) error {
+	_, err := c.client.Publish(context.Background(), channelKey, string(data)).Result()
 	if err != nil {
 		return err
 	}

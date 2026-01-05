@@ -43,13 +43,13 @@ func main() {
 			Dns:  "root:!@#12345678.@tcp(124.221.36.14:3306)/hummingbird?charset=utf8mb4&parseTime=True&loc=Local&timeout=2s",
 		}))
 
-	//go func() {
-	//	MsgReport(driverService)
-	//}()
-
 	go func() {
-		MsgReport22(driverService)
+		MsgReport(driverService)
 	}()
+
+	//go func() {
+	//	MsgReport22(driverService)
+	//}()
 	//
 	//go func() {
 	//	MsgReport2(driverService)
@@ -101,8 +101,8 @@ func MsgReport(driverService *service.DriverService) {
 	temp := 100
 	hum := 1
 	for {
-		time.Sleep(1 * time.Second)
-		resp, _ := driverService.PropertyReport("72816757", model.NewPropertyReport(model.NewDefaultCommonRequest(), map[string]interface{}{
+		time.Sleep(3 * time.Second)
+		resp, _ := driverService.PropertyReport("04710308", model.NewPropertyReport(model.NewDefaultCommonRequest(), map[string]interface{}{
 			"battery_percentage": Rand50To60(),
 			"pir_state":          0,
 			"temp":               Rand30To40(),

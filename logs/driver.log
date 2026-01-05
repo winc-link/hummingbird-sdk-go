@@ -51,3 +51,68 @@
 2026-01-04T17:28:55.249+0800 [34mINFO[0m server/server.go:354 Server shutting down
 2026-01-04T17:28:55.249+0800 [34mINFO[0m server/server.go:357 Server shut down
 2026-01-04T17:28:55.249+0800 [34mINFO[0m server/server.go:372 Server stopped
+2026-01-05T15:26:44.687+0800 [34mINFO[0m executors/dataBatch.go:42 batch report dataBatchSize :100 dataBatchInterval:10
+2026-01-05T15:26:44.774+0800 [34mINFO[0m server/server.go:360 Server starting ( [::]:41395 )
+2026-01-05T15:26:44.774+0800 [34mINFO[0m server/server.go:361 Server start success.
+2026-01-05T15:27:14.643+0800 [34mINFO[0m service/service.go:501 got stop signal, exit...
+2026-01-05T15:27:14.643+0800 [34mINFO[0m server/server.go:354 Server shutting down
+2026-01-05T15:27:14.644+0800 [34mINFO[0m server/server.go:357 Server shut down
+2026-01-05T15:27:14.644+0800 [34mINFO[0m server/server.go:372 Server stopped
+2026-01-05T15:27:20.325+0800 [34mINFO[0m executors/dataBatch.go:42 batch report dataBatchSize :100 dataBatchInterval:10
+2026-01-05T15:27:20.414+0800 [34mINFO[0m server/server.go:360 Server starting ( [::]:41395 )
+2026-01-05T15:27:20.414+0800 [34mINFO[0m server/server.go:361 Server start success.
+2026-01-05T15:27:47.875+0800 [34mINFO[0m service/service.go:501 got stop signal, exit...
+2026-01-05T15:27:47.875+0800 [34mINFO[0m server/server.go:354 Server shutting down
+2026-01-05T15:27:47.875+0800 [34mINFO[0m server/server.go:357 Server shut down
+2026-01-05T15:27:47.875+0800 [34mINFO[0m server/server.go:372 Server stopped
+2026-01-05T15:27:51.149+0800 [34mINFO[0m executors/dataBatch.go:42 batch report dataBatchSize :100 dataBatchInterval:10
+2026-01-05T15:27:51.215+0800 [34mINFO[0m server/server.go:360 Server starting ( [::]:41395 )
+2026-01-05T15:27:51.215+0800 [34mINFO[0m server/server.go:361 Server start success.
+2026-01-05T15:58:08.666+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T15:58:14.292+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T15:58:20.071+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T15:58:25.471+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T16:10:22.435+0800 [34mINFO[0m service/service.go:501 got stop signal, exit...
+2026-01-05T16:10:22.438+0800 [34mINFO[0m server/server.go:354 Server shutting down
+2026-01-05T16:10:22.446+0800 [34mINFO[0m server/server.go:357 Server shut down
+2026-01-05T16:10:22.446+0800 [34mINFO[0m server/server.go:372 Server stopped
+2026-01-05T16:10:27.642+0800 [34mINFO[0m executors/dataBatch.go:42 batch report dataBatchSize :100 dataBatchInterval:10
+2026-01-05T16:10:27.760+0800 [34mINFO[0m server/server.go:360 Server starting ( [::]:41395 )
+2026-01-05T16:10:27.760+0800 [34mINFO[0m server/server.go:361 Server start success.
+2026-01-05T17:01:52.469+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:01:58.108+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:02:03.614+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:02:09.051+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:02:14.568+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:06:34.407+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:06:39.913+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:06:45.560+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:06:51.164+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:11:16.898+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:11:22.415+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:11:27.877+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:11:33.371+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:15:42.363+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:15:54.222+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:15:59.908+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:16:05.399+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:16:10.846+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:52:24.359+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:52:29.860+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:52:35.435+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:52:41.007+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:52:46.753+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:52:51.106+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:52:54.173+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:52:57.238+0800 [31mERROR[0m service/service.go:601 update device data error: dial tcp 124.221.36.14:6379: connect: connection refused
+2026-01-05T17:59:10.907+0800 [34mINFO[0m service/service.go:501 got stop signal, exit...
+2026-01-05T17:59:10.916+0800 [34mINFO[0m server/server.go:354 Server shutting down
+2026-01-05T17:59:10.920+0800 [34mINFO[0m server/server.go:357 Server shut down
+2026-01-05T17:59:10.920+0800 [34mINFO[0m server/server.go:372 Server stopped
+2026-01-05T17:59:17.448+0800 [34mINFO[0m executors/dataBatch.go:42 batch report dataBatchSize :100 dataBatchInterval:10
+2026-01-05T17:59:17.603+0800 [34mINFO[0m server/server.go:360 Server starting ( [::]:41395 )
+2026-01-05T17:59:17.603+0800 [34mINFO[0m server/server.go:361 Server start success.
+2026-01-05T18:02:02.218+0800 [34mINFO[0m service/service.go:501 got stop signal, exit...
+2026-01-05T18:02:02.218+0800 [34mINFO[0m server/server.go:354 Server shutting down
+2026-01-05T18:02:02.219+0800 [34mINFO[0m server/server.go:357 Server shut down
+2026-01-05T18:02:02.219+0800 [34mINFO[0m server/server.go:372 Server stopped

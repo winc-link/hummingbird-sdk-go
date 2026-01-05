@@ -619,7 +619,7 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 	}
 
 	// 把消息推送到redis消息队列中，后端程序消费。
-	_ = d.pushMsgToRedisStream(eventBusPropertyPayload(cid, product.Id, data))
+	_ = d.pushMsgToChannel(eventBusPropertyPayload(cid, product.Id, data))
 
 	//通过属性的storageMode字段，找到要存入时许数据库的字段
 	storeHistoryKeyMap := make(map[string]struct{})
@@ -686,7 +686,7 @@ func (d *DriverService) eventReport(cid string, data model.EventReport) (model.C
 		Data:      eventData,
 	})
 
-	_ = d.pushMsgToRedisStream(eventBusEventPayload(cid, productId, data))
+	_ = d.pushMsgToChannel(eventBusEventPayload(cid, productId, data))
 	return model.CommonResponse{
 		MsgId:        data.MsgId,
 		ErrorMessage: constants.ErrorCodeMsgMap[constants.DefaultSuccessCode],
@@ -773,7 +773,7 @@ func (d *DriverService) connectIotPlatform(deviceId string) error {
 	if err != nil {
 		return err
 	}
-	_ = d.pushMsgToRedisStream(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOnlineEventBus))
+	_ = d.pushMsgToChannel(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOnlineEventBus))
 	device, ok := d.deviceCache.SearchById(deviceId)
 	if ok {
 		device.Status = commons.DeviceOnline
@@ -790,7 +790,7 @@ func (d *DriverService) disconnectIotPlatform(deviceId string) error {
 	if err != nil {
 		return err
 	}
-	_ = d.pushMsgToRedisStream(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOfflineEventBus))
+	_ = d.pushMsgToChannel(eventBusDeviceStatusPayload(deviceId, productId, constants.DeviceOfflineEventBus))
 	device, ok := d.deviceCache.SearchById(deviceId)
 	if ok {
 		device.Status = commons.DeviceOffline
@@ -1049,8 +1049,12 @@ func (d *DriverService) getProductServiceByCode(productId, code string) (model.S
 	return d.productCache.GetServiceSpecByCode(productId, code)
 }
 
-func (d *DriverService) pushMsgToRedisStream(payload []byte) error {
-	return d.redisClient.PushMsgToStream(payload)
+//func (d *DriverService) pushMsgToRedisStream(payload []byte) error {
+//	return d.redisClient.PushMsgToStream(payload)
+//}
+
+func (d *DriverService) pushMsgToChannel(payload []byte) error {
+	return d.redisClient.PushMsgToChannel(payload)
 }
 
 func eventBusPropertyPayload(deviceId, productId string, report model.PropertyReport) []byte {
