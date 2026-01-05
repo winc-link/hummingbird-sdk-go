@@ -618,9 +618,6 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 		}, err
 	}
 
-	// 把消息推送到redis消息队列中，后端程序消费。
-	_ = d.pushMsgToChannel(eventBusPropertyPayload(cid, product.Id, data))
-
 	//通过属性的storageMode字段，找到要存入时许数据库的字段
 	storeHistoryKeyMap := make(map[string]struct{})
 	for _, property := range product.Properties {
@@ -642,6 +639,8 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 			Data:     propertiesData,
 		})
 	}
+	// 把消息推送到redis消息队列中，后端程序消费。
+	_ = d.pushMsgToChannel(eventBusPropertyPayload(cid, product.Id, data))
 
 	return model.CommonResponse{
 		MsgId:        data.MsgId,
@@ -687,6 +686,7 @@ func (d *DriverService) eventReport(cid string, data model.EventReport) (model.C
 	})
 
 	_ = d.pushMsgToChannel(eventBusEventPayload(cid, productId, data))
+
 	return model.CommonResponse{
 		MsgId:        data.MsgId,
 		ErrorMessage: constants.ErrorCodeMsgMap[constants.DefaultSuccessCode],
