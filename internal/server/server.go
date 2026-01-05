@@ -143,6 +143,21 @@ func (server *RpcService) BatchCreateDeviceCallback(ctx context.Context, request
 	return new(emptypb.Empty), nil
 }
 
+func (server *RpcService) BatchDeleteDeviceCallback(ctx context.Context, request *devicecallback.BatchDeleteDeviceCallback) (*emptypb.Empty, error) {
+	server.logger.Info("BatchDeleteDeviceCallback:", request.String())
+	for _, id := range request.GetDeviceId() {
+		dev, ok := server.deviceProvider.SearchById(id)
+		if !ok {
+			continue
+		}
+		server.deviceProvider.RemoveById(id)
+		if err := server.driverProvider.DeviceNotify(ctx, commons.DeviceDeleteNotify, dev.Id, model.Device{}); err != nil {
+			continue
+		}
+	}
+	return new(emptypb.Empty), nil
+}
+
 func (server *RpcService) CreateProductCallback(ctx context.Context, request *productcallback.CreateProductCallbackRequest) (*emptypb.Empty, error) {
 	server.logger.Info("CreateProductCallback:", request.String())
 	product := model.TransformProductModel(request.GetData())
