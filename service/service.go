@@ -598,6 +598,7 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 
 	// 把设备最新属性数据放入redis中，以便于页面快速查询
 	if err := d.redisClient.UpdateDeviceData(cid, data.Time, data.Data); err != nil {
+		d.logger.Errorf("update device data error: %s", err)
 		return model.CommonResponse{
 			MsgId:        data.MsgId,
 			ErrorMessage: constants.ErrorCodeMsgMap[constants.RedisWriteErrorCode],
@@ -608,6 +609,7 @@ func (d *DriverService) propertyReport(cid string, data model.PropertyReport) (m
 
 	// 根据设备ID记录每个设备每日上传多少条数据，以便于做统计（设备消息排行榜、设备历史消息统计）
 	if err := d.redisClient.IncrDeviceMsgCount(cid, constants.PropertyMsg); err != nil {
+		d.logger.Errorf("incr device msg error: %s", err)
 		return model.CommonResponse{
 			MsgId:        data.MsgId,
 			ErrorMessage: constants.ErrorCodeMsgMap[constants.RedisWriteErrorCode],

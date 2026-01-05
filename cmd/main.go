@@ -23,6 +23,7 @@ func main() {
 			Password: "",
 			DB:       0,
 		}),
+		//{hummingbird device-data http://124.221.36.14:8086 6S4LFh_kP0-RHqIYjYlXgvGfXOgMIkqMkinZDePKiXbcmgIQzQcm5mV5GfSQEDVqcKzQ5WIixO7AEmwHQ17JmQ==
 		service.WithCustomDataBasesConfig(&service.DataBasesConnConfig{
 			Type: constants.DataBasesInfluxdb,
 			InfluxDB: influxdb.DbClient{
@@ -42,9 +43,9 @@ func main() {
 			Dns:  "root:!@#12345678.@tcp(124.221.36.14:3306)/hummingbird?charset=utf8mb4&parseTime=True&loc=Local&timeout=2s",
 		}))
 
-	go func() {
-		MsgReport(driverService)
-	}()
+	//go func() {
+	//	MsgReport(driverService)
+	//}()
 
 	go func() {
 		MsgReport22(driverService)
