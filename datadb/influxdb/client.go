@@ -53,11 +53,33 @@ func (c *Client) InsertBatchDeviceProperties(ctx context.Context, points []model
 			ts,
 		)
 		writeAPI.WritePoint(point)
+		// 刷盘，确保写入完成
+		writeAPI.Flush()
 	}
-	// 刷盘，确保写入完成
-	writeAPI.Flush()
 	return nil
 }
+
+//func buildPoints() []*influxdb2.Point {
+//	now := time.Now()
+//
+//	points := make([]*influxdb2.Point, 0, 100)
+//
+//	for i := 0; i < 100; i++ {
+//		p := influxdb2.NewPoint(
+//			"device_property",
+//			map[string]string{
+//				"deviceId": "dev-001",
+//				"metric":   "temperature",
+//			},
+//			map[string]interface{}{
+//				"value": 23.5 + float64(i)*0.1,
+//			},
+//			now.Add(time.Duration(i)*time.Second),
+//		)
+//		points = append(points, p)
+//	}
+//	return points
+//}
 
 func (c *Client) InsertBatchDeviceEvent(ctx context.Context, p model.BatchInsertEventData) error {
 	writeAPI := c.client.WriteAPI(c.org, c.bucket)
