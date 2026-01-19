@@ -49,6 +49,7 @@ func NewTimeDevicePropertiesDataBatcher(dataDb datadb.DataBase, log logger.Logge
 				for _, task := range tasks {
 					data = append(data, task.(model.BatchInsertPropertyData))
 				}
+				log.Infof("data:%v", data)
 				// 一次性写入数据库
 				err := dataDb.InsertBatchDeviceProperties(context.Background(), data)
 				if err != nil {
