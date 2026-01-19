@@ -43,6 +43,7 @@ func (c *Client) InsertDeviceProperties(ctx context.Context, p model.BatchInsert
 func (c *Client) InsertBatchDeviceProperties(ctx context.Context, points []model.BatchInsertPropertyData) error {
 	writeAPI := c.client.WriteAPI(c.org, c.bucket)
 	for _, p := range points {
+		fmt.Println("DeviceID:", p.DeviceID)
 		ts := time.UnixMilli(p.T).UTC()
 		point := influxdb2.NewPoint(
 			"device_properties",
