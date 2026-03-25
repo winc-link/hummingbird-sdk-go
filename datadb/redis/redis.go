@@ -22,6 +22,10 @@ func (c *Client) Ping() error {
 	return c.client.Ping(context.Background()).Err()
 }
 
+func (c *Client) GetClient() *redis.Client {
+	return c.client
+}
+
 // PushMsgToStream 向redis Stream推送数据，等待下游消费
 func (c *Client) PushMsgToStream(data []byte) error {
 	_, err := c.client.XAdd(context.Background(), &redis.XAddArgs{

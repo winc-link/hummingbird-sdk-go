@@ -16,6 +16,7 @@ package service
 
 import (
 	"github.com/winc-link/hummingbird-sdk-go/commons"
+	"github.com/winc-link/hummingbird-sdk-go/datadb/redis"
 	"github.com/winc-link/hummingbird-sdk-go/interfaces"
 	"github.com/winc-link/hummingbird-sdk-go/internal/config"
 	"github.com/winc-link/hummingbird-sdk-go/internal/logger"
@@ -50,6 +51,11 @@ func (d *DriverService) GetHummingbirdDataConfig() *config.HummingbirdConfig {
 // GetDBClient 获取数据库连接
 func (d *DriverService) GetDBClient() *gorm.DB {
 	return d.dbClient
+}
+
+// GetRedisClient 获取redis连接
+func (d *DriverService) GetRedisClient() *redis.Client {
+	return d.redisClient
 }
 
 // Online 设备与平台建立连接
