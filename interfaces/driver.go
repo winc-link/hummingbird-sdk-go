@@ -37,4 +37,6 @@ type Driver interface {
 	HandlePropertyReportDebug(ctx context.Context, deviceId string, data model.PropertyReport) error
 	// HandleEventReportDebug 模拟设备事件上报
 	HandleEventReportDebug(ctx context.Context, deviceId string, data model.EventReport) error
+	//GatewayControlSet 边缘网关控制指令下发
+	GatewayControlSet(ctx context.Context, deviceId string, data model.GatewayControlSet) error
 }

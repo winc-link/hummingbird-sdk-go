@@ -13,7 +13,7 @@ require (
 	github.com/redis/go-redis/v9 v9.17.2
 	github.com/spf13/cast v1.10.0
 	github.com/taosdata/driver-go/v3 v3.7.0
-	github.com/winc-link/edge-driver-proto v0.0.0-20260105125644-359a08331149
+	github.com/winc-link/edge-driver-proto v0.0.0-20260326055853-d7c62f9d955d
 	github.com/yuin/gopher-lua v1.1.1
 	github.com/zeromicro/go-zero v1.9.3
 	go.uber.org/zap v1.27.0

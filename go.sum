@@ -132,8 +132,8 @@ github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD
 github.com/taosdata/driver-go/v3 v3.7.0 h1:v5P0sqexOhP4z8gPI4GVE5R3UI2Y22kDUHw7P0se1Jo=
 github.com/taosdata/driver-go/v3 v3.7.0/go.mod h1:S6OGOinfR0xxxaMGsvBi9cLkYxEIW1p6qqr8QJATTlg=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
-github.com/winc-link/edge-driver-proto v0.0.0-20260105125644-359a08331149 h1:R/Nq+Z+Me/8bcoa/H/pMJ4jgQjNU4xMA9XxeXta6xCM=
-github.com/winc-link/edge-driver-proto v0.0.0-20260105125644-359a08331149/go.mod h1:H6w+UUMgmrTB+A/vJLm+kwtLb1dcA02IV9wj1UtO3Ws=
+github.com/winc-link/edge-driver-proto v0.0.0-20260326055853-d7c62f9d955d h1:9heIkdtKL2zpv5CKneDTitQrPun8oakTFV+tJeVm/ys=
+github.com/winc-link/edge-driver-proto v0.0.0-20260326055853-d7c62f9d955d/go.mod h1:H6w+UUMgmrTB+A/vJLm+kwtLb1dcA02IV9wj1UtO3Ws=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.1.1/go.mod h1:RaEWvsqvNKKvBPvcKeFjrG2cJqOkHTiyTpzz23ni57g=
 github.com/xdg-go/stringprep v1.0.3/go.mod h1:W3f5j4i+9rC0kuIEJL0ky1VpHXQU3ocBgklLGvcBnW8=

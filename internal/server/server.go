@@ -36,6 +36,7 @@ import (
 	"github.com/winc-link/edge-driver-proto/cloudinstancecallback"
 	"github.com/winc-link/edge-driver-proto/devicecallback"
 	"github.com/winc-link/edge-driver-proto/drivercommon"
+	"github.com/winc-link/edge-driver-proto/gateway"
 	"github.com/winc-link/edge-driver-proto/productcallback"
 	"github.com/winc-link/edge-driver-proto/thingmodel"
 	"google.golang.org/grpc"
@@ -51,6 +52,7 @@ type RpcService struct {
 	devicecallback.UnimplementedDeviceCallBackServiceServer
 	cloudinstancecallback.UnimplementedCloudInstanceCallBackServiceServer
 	thingmodel.UnimplementedMessageRateServiceServer
+	gateway.UnimplementedRpcGatewayServer
 
 	*CommonRPCServer
 	ctx    context.Context
@@ -311,6 +313,31 @@ func (server *RpcService) MessageRate(ctx context.Context, request *emptypb.Empt
 	return &resp, nil
 }
 
+func (server *RpcService) GatewayControl(ctx context.Context, request *gateway.GatewayControlReq) (*gateway.GateWayInfoResponse, error) {
+	var resp gateway.GateWayInfoResponse
+	server.logger.Info("GatewayControl:", request.String())
+	id := request.GetGatewaySn()
+	_, ok := server.deviceProvider.SearchById(id)
+	if !ok {
+		server.logger.Errorf("failed to find device %s", id)
+		resp.BaseResponse = new(drivercommon.CommonResponse)
+		resp.BaseResponse.Success = false
+		resp.BaseResponse.ErrorMessage = fmt.Sprintf("device %s not found", id)
+		return &resp, nil
+	}
+	if err := server.driverProvider.GatewayControlSet(ctx, id, model.GatewayControlSet{
+		ControlType: int(request.ControlType),
+		Data:        request.Data,
+	}); err != nil {
+		resp.BaseResponse = new(drivercommon.CommonResponse)
+		resp.BaseResponse.Success = false
+		resp.BaseResponse.ErrorMessage = err.Error()
+		return &resp, nil
+	}
+	resp.BaseResponse.Success = true
+	return &resp, nil
+}
+
 func NewRpcService(ctx context.Context, wg *sync.WaitGroup, cancel context.CancelFunc, cfg config.RPCConfig,
 	dc cache.DeviceProvider, pc cache.ProductProvider, driverProvider interfaces.Driver, cli *client.ResourceClient,
 	logger logger.Logger) (*RpcService, error) {
@@ -374,6 +401,7 @@ func (server *RpcService) Start() error {
 	thingmodel.RegisterThingModelDownServiceServer(server.s, server)
 	thingmodel.RegisterMessageRateServiceServer(server.s, server)
 	monitor.StartQPSCollector()
+	gateway.RegisterRpcGatewayServer(server.s, server)
 	server.wg.Add(1)
 	go func() {
 		defer server.wg.Done()
