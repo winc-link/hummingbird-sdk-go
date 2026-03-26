@@ -193,6 +193,11 @@ func DeviceLogReport(driverService *service.DriverService) {
 type driverTest struct {
 }
 
+func (d driverTest) GatewayControlSet(ctx context.Context, deviceId string, data model.GatewayControlSet) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (d driverTest) HandlePropertyReportDebug(ctx context.Context, deviceId string, data model.PropertyReport) error {
 	//TODO implement me
 	panic("implement me")
